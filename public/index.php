@@ -1,20 +1,51 @@
 <?php
 
-use App\Service\Router;
-
 define("ROOT_PATH", dirname(__DIR__));
 define("EXT_FILE", ".php");
 
 require_once ROOT_PATH . "/lib/Autoloader.php";
 
-Use AWSD\Autoloader;
+use AWSD\Autoloader;
+use AWSD\Router\Router;
 
-$autoloader = new Autoloader([
-    "App" => "src",
-    "AWSD" => "lib",
-]);
-$autoloader->register();
+use App\Controller\HomeController;
 
-new Router();
+/**
+ * Initialize and register the autoloader.
+ */
+try {
+  $aliases = ["App" => "src", "AWSD" => "lib"];
+  $autoloader = new Autoloader($aliases, ROOT_PATH, EXT_FILE);
+  $autoloader->register();
+} catch (\Throwable $e) {
+  error_log(sprintf("[%s] %s in %s:%d", date("Y-m-d H:i:s"), $e->getMessage(), $e->getFile(), $e->getLine()));
+  http_response_code(500);
+  echo "Internal Server Error";
+  exit;
+}
 
-require_once ROOT_PATH . "/src/template/base.phtml";
+/**
+ * Initialize and configure the router.
+ */
+try {
+  $router = new Router();
+  $router->get("/", [HomeController::class, "index"]);
+  $router->get("/action", function () {
+    echo "callback action";
+  });
+  
+
+  $method = (string) ($_SERVER['REQUEST_METHOD'] ?? 'GET');
+  $uri = (string) parse_url($_SERVER['REQUEST_URI'] ?? '/', PHP_URL_PATH);
+  $router->dispatch($method, $uri);
+} catch (\AWSD\Exception\HttpException $e) {
+  http_response_code($e->getStatusCode());
+  error_log($e->getMessage());
+  echo $e->getMessage(); 
+  exit;
+} catch (\Throwable $e) {
+  http_response_code(500);
+  error_log(sprintf("[%s] %s in %s:%d", date("Y-m-d H:i:s"), $e->getMessage(), $e->getFile(), $e->getLine()));
+  header("Content-Type: text/plain; charset=utf-8");
+  exit;
+}

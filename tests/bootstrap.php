@@ -2,14 +2,12 @@
 
 define("ROOT_PATH", dirname(__DIR__));
 define("EXT_FILE", ".php");
+const ROUTES = [];
 
 use AWSD\Autoloader;
 
 require_once __DIR__ . '/../lib/Autoloader.php';
 
-$autoloader = new Autoloader([
-  'App' => 'src',
-  'AWSD' => 'lib',
-]);
-
+$aliases = ["App" => "src", "AWSD" => "lib"];
+$autoloader = new Autoloader($aliases, ROOT_PATH, EXT_FILE);
 $autoloader->register();

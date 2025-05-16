@@ -4,8 +4,8 @@ namespace AWSD\Utils;
 
 class DummyClass
 {
-    public function sayHello(): string
-    {
-        return "Hello";
-    }
+  public function show(): void
+  {
+    echo 'controller called';
+  }
 }
