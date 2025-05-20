@@ -1,0 +1,28 @@
+<!-- templates/layout.php -->
+<!DOCTYPE html>
+<html lang="fr">
+
+<head>
+  <meta charset="UTF-8">
+  <title><?= $title ?? 'Mon site' ?></title>
+</head>
+
+<body>
+  <header>
+    <h1>Mon site</h1>
+    <nav>
+      <a href="/">Accueil</a>
+      <a href="/about">À propos</a>
+    </nav>
+  </header>
+
+  <main>
+    <?= $content ?? '' ?>
+  </main>
+
+  <footer>
+    <p>&copy; <?= date('Y') ?> Mon site</p>
+  </footer>
+</body>
+
+</html>

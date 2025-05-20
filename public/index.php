@@ -7,6 +7,8 @@ require_once ROOT_PATH . "/lib/Autoloader.php";
 
 use AWSD\Autoloader;
 use AWSD\Router\Router;
+use AWSD\View\View;
+use AWSD\Exception\HttpException;
 
 use App\Controller\HomeController;
 
@@ -33,18 +35,17 @@ try {
   $router->get("/action", function () {
     echo "callback action";
   });
-  
+
 
   $method = (string) ($_SERVER['REQUEST_METHOD'] ?? 'GET');
   $uri = (string) parse_url($_SERVER['REQUEST_URI'] ?? '/', PHP_URL_PATH);
   $router->dispatch($method, $uri);
-} catch (\AWSD\Exception\HttpException $e) {
-  http_response_code($e->getStatusCode());
-  error_log($e->getMessage());
-  echo $e->getMessage(); 
+} catch (HttpException $e) {
+  View::renderError($e->getStatusCode(), $e->getMessage());
+  error_log(sprintf("[%s] %s in %s:%d", date("Y-m-d H:i:s"), $e->getMessage(), $e->getFile(), $e->getLine()));
   exit;
 } catch (\Throwable $e) {
-  http_response_code(500);
+  View::renderError(500, "Une erreur inattendue est survenue.");
   error_log(sprintf("[%s] %s in %s:%d", date("Y-m-d H:i:s"), $e->getMessage(), $e->getFile(), $e->getLine()));
   header("Content-Type: text/plain; charset=utf-8");
   exit;

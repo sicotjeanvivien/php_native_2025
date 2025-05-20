@@ -2,12 +2,15 @@
 
 namespace App\Controller;
 
-class HomeController
+use AWSD\Controller\AbsctractController;
+
+class HomeController extends AbsctractController
 {
   
   function index(){
-    echo("echo HomeController");
-    return "HomeController";
+    $this->renderView("home/index", [
+      "title" => "HomePage"
+    ]);
   }
 
 }

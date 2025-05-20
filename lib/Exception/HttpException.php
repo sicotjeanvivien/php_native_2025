@@ -2,14 +2,14 @@
 
 namespace AWSD\Exception;
 
-class HttpException extends \Exception
+class HttpException extends \RuntimeException
 {
-  public function __construct(
-    string $message = '',
-    public readonly int $statusCode = 500,
-    ?\Throwable $previous = null
-  ) {
-    parent::__construct($message, 0, $previous);
+  protected int $statusCode;
+
+  public function __construct(string $message = "", int $statusCode = 500)
+  {
+    parent::__construct($message);
+    $this->statusCode = $statusCode;
   }
 
   public function getStatusCode(): int
