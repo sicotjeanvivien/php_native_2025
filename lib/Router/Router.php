@@ -4,61 +4,81 @@ namespace AWSD\Router;
 
 class Router
 {
-
-  private array $routes;
-
-  public function __construct()
-  {
-    $this->routes = [];
-  }
+  public function __construct(
+    private array $routes = []
+  ) {}
 
 
   /**
    * Adds a GET route to the router.
    *
    * @param string $path The path of the route.
-   * @param callable|array $action The action to be executed when the route is matched.
+   * @param mixed $action The action to be executed when the route is matched.
    * @throws \InvalidArgumentException If the action is not callable.
    */
-  public function get(string $path, $action): void
+  public function get(string $path, mixed $action): void
   {
     $this->addRoute("GET", $path, $action);
+  }
+
+  /**
+   * Adds a HEAD route to the router.
+   *
+   * @param string $path The path of the route.
+   * @param mixed $action The action to be executed when the route is matched.
+   * @throws \InvalidArgumentException If the action is not callable.
+   */
+  public function head(string $path, mixed $action): void
+  {
+    $this->addRoute("HEAD", $path, $action);
   }
 
   /**
    * Adds a POST route to the router.
    *
    * @param string $path The path of the route.
-   * @param callable|array $action The action to be executed when the route is matched.
+   * @param mixed $action The action to be executed when the route is matched.
    * @throws \InvalidArgumentException If the action is not callable.
    */
-  public function post(string $path, $action): void
+  public function post(string $path, mixed $action): void
   {
     $this->addRoute("POST", $path, $action);
   }
 
   /**
-   * Adds a PATCH route to the router.
+   * Adds a PUT route to the router.
    *
    * @param string $path The path of the route.
-   * @param callable|array $action The action to be executed when the route is matched.
+   * @param mixed $action The action to be executed when the route is matched.
    * @throws \InvalidArgumentException If the action is not callable.
    */
-  public function patch(string $path, $action): void
+  public function put(string $path, mixed $action): void
   {
-    $this->addRoute("PATCH", $path, $action);
+    $this->addRoute("PUT", $path, $action);
   }
 
   /**
    * Adds a DELETE route to the router.
    *
    * @param string $path The path of the route.
-   * @param callable|array $action The action to be executed when the route is matched.
+   * @param mixed $action The action to be executed when the route is matched.
    * @throws \InvalidArgumentException If the action is not callable.
    */
-  public function delete(string $path, $action): void
+  public function delete(string $path, mixed $action): void
   {
     $this->addRoute("DELETE", $path, $action);
+  }
+
+  /**
+   * Adds a PATCH route to the router.
+   *
+   * @param string $path The path of the route.
+   * @param mixed $action The action to be executed when the route is matched.
+   * @throws \InvalidArgumentException If the action is not callable.
+   */
+  public function patch(string $path, mixed $action): void
+  {
+    $this->addRoute("PATCH", $path, $action);
   }
 
   /**
@@ -76,7 +96,7 @@ class Router
       throw new \AWSD\Exception\HttpException("Route not found: $request_uri ", 404);
     }
 
-    $this->executeAction($route["action"]);
+    $this->executeAction($route->getAction());
   }
 
   /**
@@ -84,20 +104,16 @@ class Router
    *
    * @param string $method The HTTP method (e.g., GET, POST).
    * @param string $path The path of the route.
-   * @param callable|array $action The action to be executed when the route is matched.
+   * @param mixed $action The action to be executed when the route is matched.
    * @throws \InvalidArgumentException If the action is not callable.
    */
-  private function addRoute(string $mehtod, string $path, callable|array $action): void
+  private function addRoute(string $method, string $path, mixed $action): void
   {
     if (!is_callable($action) && !is_array($action)) {
       throw new \AWSD\Exception\HttpException("Method not allowed", 405);
     }
 
-    $this->routes[] = [
-      "method" => strtoupper($mehtod),
-      "path" => $path,
-      "action" => $action
-    ];
+    $this->routes[] = new Route($method, $path, $action);
   }
 
   /**
@@ -105,24 +121,22 @@ class Router
    *
    * @param string $method The HTTP method.
    * @param string $request_uri The request URI.
-   * @return array|null The resolved route or null if not found.
+   * @return Route|null The resolved route or null if not found.
    */
-  private function resolveRoute(string $method, string $request_uri): array|null
+  private function resolveRoute(string $method, string $request_uri): ?Route
   {
-    return array_find($this->routes, function ($route) use ($method, $request_uri) {
-      if ($route["method"] === $method && $route["path"] === $request_uri) {
-        return $route;
-      }
+    return array_find($this->routes, function (Route $route) use ($method, $request_uri) {
+      return $route->getMethod() === $method && $route->getPath() === $request_uri;
     });
   }
 
   /**
    * Executes the action associated with the route.
    *
-   * @param callable|array $action The action to be executed.
+   * @param mixed $action The action to be executed.
    * @throws \RuntimeException If the action is invalid or the class/method does not exist.
    */
-  private function executeAction($action): void
+  private function executeAction(mixed $action): void
   {
     if (is_callable($action)) {
       call_user_func($action);
