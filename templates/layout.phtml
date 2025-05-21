@@ -1,10 +1,14 @@
+<?php
+
+use AWSD\View\Section;
+?>
 <!-- templates/layout.php -->
 <!DOCTYPE html>
 <html lang="fr">
 
 <head>
   <meta charset="UTF-8">
-  <title><?= $title ?? 'Mon site' ?></title>
+  <title><?= Section::yield("title", "HomePage") ?></title>
 </head>
 
 <body>
@@ -17,7 +21,7 @@
   </header>
 
   <main>
-    <?= $content ?? '' ?>
+    <?= Section::yield("content") ?>
   </main>
 
   <footer>

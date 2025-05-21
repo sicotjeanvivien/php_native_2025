@@ -63,7 +63,7 @@ class View
    */
   private static function templateNameToTemplatePath(string $templateName): string
   {
-    $templatePath = self::TEMPLATE_DIR . "/templates/{$templateName}.phtml";
+    $templatePath = self::TEMPLATE_DIR . "/{$templateName}.phtml";
 
     if (!file_exists($templatePath)) {
       throw new HttpException("Template not found", 404);
@@ -82,10 +82,11 @@ class View
    */
   private static function generateView(string $templatePath, array $params, string $layout = "layout"): void
   {
+    Section::clearSections();
     extract($params, EXTR_SKIP);
     ob_start();
     require $templatePath;
-    $content = ob_get_clean();
+    ob_end_clean();
     require self::templateNameToTemplatePath($layout);
   }
 }

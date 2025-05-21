@@ -1,3 +1,8 @@
-<!-- templates/errors/404.php -->
+<?php
+
+use AWSD\View\Section;
+?>
+<?= Section::startSection("content") ?>
 <h2>404 - Page non trouvée</h2>
 <p><?= $message ?? "La page demandée est introuvable." ?></p>
+<?= Section::endsection() ?>
