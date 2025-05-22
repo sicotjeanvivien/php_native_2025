@@ -1,8 +1,8 @@
 <?php
 
-use AWSD\View\Section;
+use AWSD\Template\Section;
 ?>
 <?= Section::startSection("content") ?>
 <h2>500 - Erreur serveur</h2>
 <p><?= $message ?? "Une erreur interne est survenue." ?></p>
-<?= Section::endsection() ?>
+<?= Section::endSection() ?>

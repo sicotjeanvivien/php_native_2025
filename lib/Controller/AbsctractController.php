@@ -2,7 +2,7 @@
 
 namespace AWSD\Controller;
 
-use AWSD\View\View;
+use AWSD\Template\View;
 
 class AbsctractController
 {

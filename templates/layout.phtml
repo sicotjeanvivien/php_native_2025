@@ -1,6 +1,7 @@
 <?php
 
-use AWSD\View\Section;
+use AWSD\Template\Section;
+use AWSD\Template\Partial;
 ?>
 <!-- templates/layout.php -->
 <!DOCTYPE html>
@@ -12,13 +13,7 @@ use AWSD\View\Section;
 </head>
 
 <body>
-  <header>
-    <h1>Mon site</h1>
-    <nav>
-      <a href="/">Accueil</a>
-      <a href="/about">À propos</a>
-    </nav>
-  </header>
+  <?= Partial::render("header") ?>
 
   <main>
     <?= Section::yield("content") ?>

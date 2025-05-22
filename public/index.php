@@ -7,7 +7,7 @@ require_once ROOT_PATH . "/lib/Autoloader.php";
 
 use AWSD\Autoloader;
 use AWSD\Router\Router;
-use AWSD\View\View;
+use AWSD\Template\View;
 use AWSD\Exception\HttpException;
 
 use App\Controller\HomeController;
@@ -35,8 +35,6 @@ try {
   $router->get("/action", function () {
     echo "callback action";
   });
-
-
   $method = (string) ($_SERVER['REQUEST_METHOD'] ?? 'GET');
   $uri = (string) parse_url($_SERVER['REQUEST_URI'] ?? '/', PHP_URL_PATH);
   $router->dispatch($method, $uri);
