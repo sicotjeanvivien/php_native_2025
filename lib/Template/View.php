@@ -57,7 +57,7 @@ class View extends Template
 				"title" => "$statusCode - Error",
 				"message" => $message
 			];
-			echo self::generateView($templateName, $params, "errors/layout");
+			require self::generateView($templateName, $params, "errors/layout");
 		} catch (HttpException $e) {
 			error_log($e->getMessage());
 			echo "<h1>$statusCode</h1><p>$message</p>";
