@@ -50,7 +50,7 @@ class Env
         continue;
       }
 
-      $name = trim($parts[0]);
+      $name = strtoupper(trim($parts[0]));
       $value = trim($parts[1]);
       $value = trim($value, "\"'");
 

@@ -3,18 +3,19 @@
 namespace App\Controller;
 
 use AWSD\Controller\AbsctractController;
+use AWSD\Utils\Database;
 
 class HomeController extends AbsctractController
 {
 
   function index()
   {
+
+    $database = new Database();
+    $conn = $database->connect();
+    var_dump($conn);
     $this->renderView("home/index", [
-      "title" => "HomePage",
-      "DB_HOST" => $_ENV["DB_HOST"],
-      "DB_DATABASE" => $_ENV["DB_DATABASE"],
-      "DB_USERNAME" => $_ENV["DB_USERNAME"],
-      "DB_PASSWORD" => $_ENV["DB_PASSWORD"]
+      "title" => "HomePage"
     ]);
   }
 }
