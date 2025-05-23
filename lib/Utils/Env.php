@@ -1,6 +1,6 @@
 <?php
 
-namespace AWSD;
+namespace AWSD\Utils;
 
 use RuntimeException;
 
@@ -18,7 +18,7 @@ class Env
    */
   public function __construct()
   {
-    $this->loadEnv(dirname(__DIR__) . '/.env');
+    $this->loadEnv(dirname(__DIR__, 2) . '/.env');
   }
 
   /**

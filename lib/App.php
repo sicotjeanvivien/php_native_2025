@@ -2,10 +2,11 @@
 
 namespace AWSD;
 
-use AWSD\Env;
+use AWSD\Utils\Env;
 use AWSD\Router\Router;
 use AWSD\Template\View;
 use AWSD\Exception\HttpException;
+use AWSD\Utils\Log;
 
 /**
  * Class App
@@ -50,6 +51,7 @@ class App
       $router->dispatch($method, $uri);
     } catch (HttpException $e) {
       View::renderError($e->getStatusCode(), $e->getMessage());
+      Log::captureError($e);
     }
   }
 }

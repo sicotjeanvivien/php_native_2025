@@ -1,6 +1,6 @@
 <?php
 
-namespace AWSD;
+namespace AWSD\Utils;
 
 use AWSD\Exception\AutoloadException;
 

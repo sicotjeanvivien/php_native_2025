@@ -3,6 +3,9 @@
 /**
  * Define the root path of the application.
  */
+
+use AWSD\Utils\Log;
+
 define("ROOT_PATH", dirname(__DIR__));
 
 /**
@@ -13,23 +16,17 @@ define("EXT_FILE", ".php");
 /**
  * Include the Autoloader.
  */
-require_once ROOT_PATH . "/lib/Autoloader.php";
+require_once ROOT_PATH . "/lib/Utils/Autoloader.php";
 
 /**
  * Initialize the autoloader with aliases and register it.
  */
 try {
   $aliases = ["App" => "src", "AWSD" => "lib"];
-  $autoloader = new \AWSD\Autoloader($aliases, ROOT_PATH, EXT_FILE);
+  $autoloader = new \AWSD\Utils\Autoloader($aliases, ROOT_PATH, EXT_FILE);
   $autoloader->register();
 } catch (\Throwable $e) {
-  error_log(sprintf(
-    "[%s] Autoloader error: %s in %s:%d",
-    date("Y-m-d H:i:s"),
-    $e->getMessage(),
-    $e->getFile(),
-    $e->getLine()
-  ));
+  Log::captureError($e);
   http_response_code(500);
   echo "Critical Error: Unable to load classes.";
   exit;
@@ -46,11 +43,11 @@ try {
   App::bootstrap();
 } catch (HttpException $e) {
   View::renderError($e->getStatusCode(), $e->getMessage());
-  error_log(sprintf("[%s] %s in %s:%d", date("Y-m-d H:i:s"), $e->getMessage(), $e->getFile(), $e->getLine()));
+  Log::captureError($e);
   exit;
 } catch (\Throwable $e) {
   View::renderError(500, "An unexpected error occurred.");
-  error_log(sprintf("[%s] %s in %s:%d", date("Y-m-d H:i:s"), $e->getMessage(), $e->getFile(), $e->getLine()));
+  Log::captureError($e);
   header("Content-Type: text/plain; charset=utf-8");
   exit;
 }
