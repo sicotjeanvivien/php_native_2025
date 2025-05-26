@@ -6,6 +6,7 @@ use AWSD\Utils\Env;
 use AWSD\Router\Router;
 use AWSD\Template\View;
 use AWSD\Exception\HttpException;
+use AWSD\Router\Route;
 use AWSD\Utils\Log;
 
 /**
@@ -39,7 +40,8 @@ class App
    */
   private static function initRouter(): void
   {
-    $router = new Router();
+    $routesConfig = json_decode(file_get_contents(ROOT_PATH . "/config/routes.json"), true);
+    $router = new Router($routesConfig);
 
     $router->get("/", [\App\Controller\HomeController::class, "index"]);
     $router->get("/action", fn() => print("callback action"));

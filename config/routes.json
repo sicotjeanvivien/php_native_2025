@@ -1,0 +1,14 @@
+[
+
+  {
+    "path": "/",
+    "method": "GET",
+    "controller": "HomeController",
+    "action": "index"
+  },
+  {
+    "path": "action",
+    "method": "GET",
+    "action": "Hello depuis un callback simple"
+  }
+]

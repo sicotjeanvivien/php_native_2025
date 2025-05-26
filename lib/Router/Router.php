@@ -4,9 +4,14 @@ namespace AWSD\Router;
 
 class Router
 {
-  public function __construct(
-    private array $routes = []
-  ) {}
+
+  private array $routes;
+
+  public function __construct(array $routes = [])
+  {
+    $this->routes = [];
+    $this->registerRoutes($routes);
+  }
 
 
   /**
@@ -99,6 +104,28 @@ class Router
     $this->executeAction($route->getAction());
   }
 
+
+  private function registerRoutes(array $routes): void
+  {
+    foreach ($routes as $route) {
+      $method = strtoupper($route['method'] ?? '');
+      $path = $route['path'] ?? null;
+      $controller = "\App\Controller\\" . $route["controller"] . "::class"  ?? null;
+      $action = $route['action'] ?? null;
+
+      if (!in_array($method, ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'HEAD'], true)) {
+        throw new \InvalidArgumentException("Méthode HTTP non supportée : $method");
+      }
+
+      if (!$path || !$action) {
+        throw new \InvalidArgumentException("Route mal formée (manque path ou action)");
+      }
+
+      $this->addRoute($method, $path, [$controller, $action]);
+    }
+  }
+
+
   /**
    * Adds a route to the router.
    *
@@ -109,10 +136,10 @@ class Router
    */
   private function addRoute(string $method, string $path, mixed $action): void
   {
+    var_dump($action);
     if (!is_callable($action) && !is_array($action)) {
       throw new \AWSD\Exception\HttpException("Method not allowed", 405);
     }
-
     $this->routes[] = new Route($method, $path, $action);
   }
 
