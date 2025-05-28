@@ -2,17 +2,28 @@
 
 namespace AWSD\Router;
 
+/**
+ * Class Router
+ *
+ * A simple router for handling HTTP requests and dispatching them to appropriate actions.
+ */
 class Router
 {
-
+  /**
+   * @var array The list of registered routes.
+   */
   private array $routes;
 
+  /**
+   * Router constructor.
+   *
+   * @param array $routes The initial routes to register.
+   */
   public function __construct(array $routes = [])
   {
     $this->routes = [];
     $this->registerRoutes($routes);
   }
-
 
   /**
    * Adds a GET route to the router.
@@ -96,35 +107,37 @@ class Router
   public function dispatch(string $method, string $request_uri): void
   {
     $route = $this->resolveRoute($method, $request_uri);
-
     if (!$route) {
-      throw new \AWSD\Exception\HttpException("Route not found: $request_uri ", 404);
+      throw new \AWSD\Exception\HttpException("Route not found: $request_uri", 404);
     }
-
     $this->executeAction($route->getAction());
   }
 
-
+  /**
+   * Registers an array of routes.
+   *
+   * @param array $routes The routes to register.
+   * @throws \InvalidArgumentException If a route is malformed or the HTTP method is not supported.
+   */
   private function registerRoutes(array $routes): void
   {
     foreach ($routes as $route) {
       $method = strtoupper($route['method'] ?? '');
       $path = $route['path'] ?? null;
-      $controller = "\App\Controller\\" . $route["controller"] . "::class"  ?? null;
-      $action = $route['action'] ?? null;
+      $controller = array_key_exists("controller", $route) ? "App\Controller\\" . $route["controller"] : null;
+      $action = $controller ? [$controller, $route['action']] : fn() => print($route['action']);
 
       if (!in_array($method, ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'HEAD'], true)) {
-        throw new \InvalidArgumentException("Méthode HTTP non supportée : $method");
+        throw new \InvalidArgumentException("Unsupported HTTP method: $method");
       }
 
       if (!$path || !$action) {
-        throw new \InvalidArgumentException("Route mal formée (manque path ou action)");
+        throw new \InvalidArgumentException("Malformed route (missing path or action)");
       }
 
-      $this->addRoute($method, $path, [$controller, $action]);
+      $this->addRoute($method, $path, $action);
     }
   }
-
 
   /**
    * Adds a route to the router.
@@ -136,7 +149,6 @@ class Router
    */
   private function addRoute(string $method, string $path, mixed $action): void
   {
-    var_dump($action);
     if (!is_callable($action) && !is_array($action)) {
       throw new \AWSD\Exception\HttpException("Method not allowed", 405);
     }

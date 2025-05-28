@@ -7,7 +7,7 @@
     "action": "index"
   },
   {
-    "path": "action",
+    "path": "/action",
     "method": "GET",
     "action": "Hello depuis un callback simple"
   }

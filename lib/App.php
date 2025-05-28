@@ -43,8 +43,9 @@ class App
     $routesConfig = json_decode(file_get_contents(ROOT_PATH . "/config/routes.json"), true);
     $router = new Router($routesConfig);
 
-    $router->get("/", [\App\Controller\HomeController::class, "index"]);
-    $router->get("/action", fn() => print("callback action"));
+    // $router = new Router();
+    // $router->get("/", [\App\Controller\HomeController::class, "index"]);
+    // $router->get("/action", fn() => print("callback action"));
 
     $method = $_SERVER['REQUEST_METHOD'] ?? 'GET';
     $uri = parse_url($_SERVER['REQUEST_URI'] ?? '/', PHP_URL_PATH);
