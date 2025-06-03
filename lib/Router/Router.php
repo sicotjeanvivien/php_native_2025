@@ -2,10 +2,15 @@
 
 namespace AWSD\Router;
 
+use AWSD\Middleware\MiddlewareManager;
+
 /**
  * Class Router
  *
  * A simple router for handling HTTP requests and dispatching them to appropriate actions.
+ * Supports route registration, middleware execution, and dynamic URI matching.
+ *
+ * @package AWSD\Router
  */
 class Router
 {
@@ -30,11 +35,10 @@ class Router
    *
    * @param string $path The path of the route.
    * @param mixed $action The action to be executed when the route is matched.
-   * @throws \InvalidArgumentException If the action is not callable.
    */
   public function get(string $path, mixed $action): void
   {
-    $this->addRoute("GET", $path, $action);
+    $this->addRoute('GET', $path, $action);
   }
 
   /**
@@ -42,11 +46,10 @@ class Router
    *
    * @param string $path The path of the route.
    * @param mixed $action The action to be executed when the route is matched.
-   * @throws \InvalidArgumentException If the action is not callable.
    */
   public function head(string $path, mixed $action): void
   {
-    $this->addRoute("HEAD", $path, $action);
+    $this->addRoute('HEAD', $path, $action);
   }
 
   /**
@@ -54,11 +57,10 @@ class Router
    *
    * @param string $path The path of the route.
    * @param mixed $action The action to be executed when the route is matched.
-   * @throws \InvalidArgumentException If the action is not callable.
    */
   public function post(string $path, mixed $action): void
   {
-    $this->addRoute("POST", $path, $action);
+    $this->addRoute('POST', $path, $action);
   }
 
   /**
@@ -66,11 +68,10 @@ class Router
    *
    * @param string $path The path of the route.
    * @param mixed $action The action to be executed when the route is matched.
-   * @throws \InvalidArgumentException If the action is not callable.
    */
   public function put(string $path, mixed $action): void
   {
-    $this->addRoute("PUT", $path, $action);
+    $this->addRoute('PUT', $path, $action);
   }
 
   /**
@@ -78,11 +79,10 @@ class Router
    *
    * @param string $path The path of the route.
    * @param mixed $action The action to be executed when the route is matched.
-   * @throws \InvalidArgumentException If the action is not callable.
    */
   public function delete(string $path, mixed $action): void
   {
-    $this->addRoute("DELETE", $path, $action);
+    $this->addRoute('DELETE', $path, $action);
   }
 
   /**
@@ -90,79 +90,93 @@ class Router
    *
    * @param string $path The path of the route.
    * @param mixed $action The action to be executed when the route is matched.
-   * @throws \InvalidArgumentException If the action is not callable.
    */
   public function patch(string $path, mixed $action): void
   {
-    $this->addRoute("PATCH", $path, $action);
+    $this->addRoute('PATCH', $path, $action);
   }
 
   /**
-   * Dispatches the request to the appropriate route.
+   * Dispatches the HTTP request to the matching route.
+   *
+   * Resolves the route based on method and URI, then executes the middleware pipeline.
+   * If a match is found, the associated action is executed.
+   * If no route matches, a HttpException is thrown.
    *
    * @param string $method The HTTP method (e.g., GET, POST).
    * @param string $request_uri The request URI.
-   * @throws \RuntimeException If the route is not found.
+   * @throws \AWSD\Exception\HttpException If no route matches.
    */
   public function dispatch(string $method, string $request_uri): void
   {
     $routeData = $this->resolveRoute($method, $request_uri);
     if (!$routeData) {
-      throw new \AWSD\Exception\HttpException("The requested route was not found: " . $request_uri, 404);
+      throw new \AWSD\Exception\HttpException('The requested route was not found: ' . $request_uri, 404);
     }
 
     [$route, $params] = $routeData;
-    $this->executeAction($route->getAction(), $params);
+    MiddlewareManager::run(
+      $route->getMiddlewares(),
+      fn($request) => $this->executeAction($route->getAction(), $params)
+    );
   }
 
   /**
-   * Registers an array of routes.
+   * Registers a list of routes from configuration.
    *
-   * @param array $routes The routes to register.
-   * @throws \InvalidArgumentException If a route is malformed or the HTTP method is not supported.
+   * Each route should define its HTTP method, URI path, associated controller/action,
+   * and optionally an array of middlewares.
+   *
+   * @param array $routes The route definitions.
+   * @throws \InvalidArgumentException If a route is malformed or the method is unsupported.
    */
   private function registerRoutes(array $routes): void
   {
     foreach ($routes as $route) {
       $method = strtoupper($route['method'] ?? '');
       $path = $route['path'] ?? null;
-      $controller = array_key_exists("controller", $route) ? "App\Controller\\" . $route["controller"] : null;
+      $controller = array_key_exists('controller', $route) ? 'App\Controller\\' . $route['controller'] : null;
       $action = $controller ? [$controller, $route['action']] : fn() => print($route['action']);
+      $middlewares = $route['middlewares'] ?? [];
 
       if (!in_array($method, ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'HEAD'], true)) {
-        throw new \InvalidArgumentException("The HTTP method is not supported: " . $method);
+        throw new \InvalidArgumentException('The HTTP method is not supported: ' . $method);
       }
 
       if (!$path || !$action) {
-        throw new \InvalidArgumentException("Malformed route: missing path or action");
+        throw new \InvalidArgumentException('Malformed route: missing path or action');
       }
 
-      $this->addRoute($method, $path, $action);
+      $this->addRoute($method, $path, $action, $middlewares);
     }
   }
 
   /**
-   * Adds a route to the router.
+   * Adds a new route to the router.
    *
-   * @param string $method The HTTP method (e.g., GET, POST).
-   * @param string $path The path of the route.
-   * @param mixed $action The action to be executed when the route is matched.
-   * @throws \InvalidArgumentException If the action is not callable.
+   * @param string $method The HTTP method (GET, POST, etc.).
+   * @param string $path The route URI.
+   * @param mixed $action The action to execute when the route is matched.
+   * @param array $middleware The middleware list for this route.
+   * @throws \AWSD\Exception\HttpException If the action is not callable.
    */
-  private function addRoute(string $method, string $path, mixed $action): void
+  private function addRoute(string $method, string $path, mixed $action, array $middleware = []): void
   {
     if (!is_callable($action) && !is_array($action)) {
-      throw new \AWSD\Exception\HttpException("The provided action is not callable", 405);
+      throw new \AWSD\Exception\HttpException('The provided action is not callable', 405);
     }
-    $this->routes[] = new Route($method, $path, $action);
+    $this->routes[] = new Route($method, $path, $action, $middleware);
   }
 
   /**
-   * Resolves the route based on the HTTP method and request URI.
+   * Resolves the route matching the given method and URI.
+   *
+   * If a match is found, it returns an array with the Route instance and extracted parameters.
+   * If no match is found, returns null.
    *
    * @param string $method The HTTP method.
    * @param string $request_uri The request URI.
-   * @return array|null The resolved route and parameters or null if not found.
+   * @return array|null Array with [Route $route, array $params] or null if not found.
    */
   private function resolveRoute(string $method, string $request_uri): ?array
   {
@@ -186,11 +200,14 @@ class Router
   }
 
   /**
-   * Executes the action associated with the route.
+   * Executes the action associated with a route.
    *
-   * @param mixed $action The action to be executed.
-   * @param array $params The parameters to pass to the action.
-   * @throws \RuntimeException If the action is invalid or the class/method does not exist.
+   * Supports closures or controller class/method pairs.
+   * Parameters extracted from the URI are passed as arguments.
+   *
+   * @param mixed $action The action to execute (closure or [class, method]).
+   * @param array $params Parameters to pass to the action.
+   * @throws \AWSD\Exception\HttpException If the action is invalid or not callable.
    */
   private function executeAction(mixed $action, array $params = []): void
   {
@@ -201,10 +218,10 @@ class Router
       if (class_exists($class) && method_exists($class, $method)) {
         call_user_func_array([new $class, $method], $params);
       } else {
-        throw new \AWSD\Exception\HttpException("The specified class or method does not exist", 405);
+        throw new \AWSD\Exception\HttpException('The specified class or method does not exist', 405);
       }
     } else {
-      throw new \AWSD\Exception\HttpException("Invalid action provided", 500);
+      throw new \AWSD\Exception\HttpException('Invalid action provided', 500);
     }
   }
 }

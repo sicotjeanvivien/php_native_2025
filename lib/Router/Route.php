@@ -4,31 +4,43 @@ namespace AWSD\Router;
 
 use AWSD\Utils\Sanitization;
 
+/**
+ * Class Route
+ *
+ * Represents a route in the application, including its HTTP method, URI pattern,
+ * associated action (callable or controller), and attached middlewares.
+ *
+ * Supports dynamic route parameters using pattern placeholders like /user/{id}.
+ *
+ * @package AWSD\Router
+ */
 class Route
 {
   private array $parameters = [];
   private string $pattern;
 
   /**
-   * Constructor for the Route class.
+   * Constructs a new Route instance.
    *
-   * @param string $method The HTTP method for the route.
-   * @param string $uri The URI pattern for the route.
-   * @param mixed $action The action to be executed when the route is matched.
+   * @param string $method The HTTP method (GET, POST, etc.).
+   * @param string $uri The URI pattern (e.g., /article/{id}).
+   * @param mixed $action The action to execute when the route is matched.
+   * @param array $middlewares The list of middlewares for this route.
    */
   public function __construct(
     private string $method,
     private string $uri,
-    private mixed $action
+    private mixed $action,
+    private array $middlewares
   ) {
     $this->method = strtoupper($method);
     $this->compilePattern();
   }
 
   /**
-   * Gets the HTTP method of the route.
+   * Returns the HTTP method of the route.
    *
-   * @return string The HTTP method.
+   * @return string
    */
   public function getMethod(): string
   {
@@ -36,9 +48,9 @@ class Route
   }
 
   /**
-   * Gets the URI of the route.
+   * Returns the URI of the route.
    *
-   * @return string The URI.
+   * @return string
    */
   public function getUri(): string
   {
@@ -46,9 +58,9 @@ class Route
   }
 
   /**
-   * Gets the action of the route.
+   * Returns the action associated with the route.
    *
-   * @return mixed The action.
+   * @return mixed
    */
   public function getAction(): mixed
   {
@@ -56,9 +68,19 @@ class Route
   }
 
   /**
+   * Returns the list of middlewares assigned to the route.
+   *
+   * @return array
+   */
+  public function getMiddlewares(): array
+  {
+    return $this->middlewares;
+  }
+
+  /**
    * Sets the HTTP method of the route.
    *
-   * @param string $method The HTTP method.
+   * @param string $method
    */
   public function setMethod(string $method): void
   {
@@ -68,7 +90,7 @@ class Route
   /**
    * Sets the URI of the route.
    *
-   * @param string $uri The URI.
+   * @param string $uri
    */
   public function setUri(string $uri): void
   {
@@ -79,7 +101,7 @@ class Route
   /**
    * Sets the action of the route.
    *
-   * @param mixed $action The action.
+   * @param mixed $action
    */
   public function setAction(mixed $action): void
   {
@@ -87,10 +109,21 @@ class Route
   }
 
   /**
-   * Matches the request URI against the route pattern.
+   * Sets the list of middlewares for the route.
    *
-   * @param string $requestUri The request URI to match.
-   * @return false|array Returns an array of parameters if matched, false otherwise.
+   * @param array $middlewares
+   */
+  public function setMiddlewares(array $middlewares): void
+  {
+    $this->middlewares = $middlewares;
+  }
+
+  /**
+   * Matches the incoming request URI with the route pattern.
+   * If matched, returns an associative array of extracted parameters.
+   *
+   * @param string $requestUri
+   * @return array|false
    */
   public function match(string $requestUri): false|array
   {
@@ -104,9 +137,9 @@ class Route
   }
 
   /**
-   * Compiles the URI pattern for regex matching.
+   * Compiles the route URI into a regex pattern for matching.
    *
-   * @throws \RuntimeException If the pattern compilation fails.
+   * @throws \RuntimeException If the pattern could not be compiled.
    */
   private function compilePattern(): void
   {
@@ -120,9 +153,9 @@ class Route
     );
 
     if ($this->pattern === null) {
-      throw new \RuntimeException("Failed to compile the route pattern for URI: " . $this->uri);
+      throw new \RuntimeException('Failed to compile the route pattern for URI: ' . $this->uri);
     }
 
-    $this->pattern = "#^" . $this->pattern . "$#";
+    $this->pattern = '#^' . $this->pattern . '$#';
   }
 }
