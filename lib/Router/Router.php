@@ -106,11 +106,13 @@ class Router
    */
   public function dispatch(string $method, string $request_uri): void
   {
-    $route = $this->resolveRoute($method, $request_uri);
-    if (!$route) {
-      throw new \AWSD\Exception\HttpException("Route not found: $request_uri", 404);
+    $routeData = $this->resolveRoute($method, $request_uri);
+    if (!$routeData) {
+      throw new \AWSD\Exception\HttpException("The requested route was not found: " . $request_uri, 404);
     }
-    $this->executeAction($route->getAction());
+
+    [$route, $params] = $routeData;
+    $this->executeAction($route->getAction(), $params);
   }
 
   /**
@@ -128,11 +130,11 @@ class Router
       $action = $controller ? [$controller, $route['action']] : fn() => print($route['action']);
 
       if (!in_array($method, ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'HEAD'], true)) {
-        throw new \InvalidArgumentException("Unsupported HTTP method: $method");
+        throw new \InvalidArgumentException("The HTTP method is not supported: " . $method);
       }
 
       if (!$path || !$action) {
-        throw new \InvalidArgumentException("Malformed route (missing path or action)");
+        throw new \InvalidArgumentException("Malformed route: missing path or action");
       }
 
       $this->addRoute($method, $path, $action);
@@ -150,7 +152,7 @@ class Router
   private function addRoute(string $method, string $path, mixed $action): void
   {
     if (!is_callable($action) && !is_array($action)) {
-      throw new \AWSD\Exception\HttpException("Method not allowed", 405);
+      throw new \AWSD\Exception\HttpException("The provided action is not callable", 405);
     }
     $this->routes[] = new Route($method, $path, $action);
   }
@@ -160,34 +162,49 @@ class Router
    *
    * @param string $method The HTTP method.
    * @param string $request_uri The request URI.
-   * @return Route|null The resolved route or null if not found.
+   * @return array|null The resolved route and parameters or null if not found.
    */
-  private function resolveRoute(string $method, string $request_uri): ?Route
+  private function resolveRoute(string $method, string $request_uri): ?array
   {
-    return array_find($this->routes, function (Route $route) use ($method, $request_uri) {
-      return $route->getMethod() === $method && $route->getPath() === $request_uri;
+    $params = [];
+
+    $matchingRoute = array_find($this->routes, function (Route $route) use ($method, $request_uri, &$params) {
+      if ($route->getMethod() !== $method) {
+        return false;
+      }
+
+      $match = $route->match($request_uri);
+      if ($match !== false) {
+        $params = $match;
+        return true;
+      }
+
+      return false;
     });
+
+    return $matchingRoute ? [$matchingRoute, $params] : null;
   }
 
   /**
    * Executes the action associated with the route.
    *
    * @param mixed $action The action to be executed.
+   * @param array $params The parameters to pass to the action.
    * @throws \RuntimeException If the action is invalid or the class/method does not exist.
    */
-  private function executeAction(mixed $action): void
+  private function executeAction(mixed $action, array $params = []): void
   {
     if (is_callable($action)) {
-      call_user_func($action);
+      call_user_func_array($action, $params);
     } elseif (is_array($action) && count($action) === 2) {
       [$class, $method] = $action;
       if (class_exists($class) && method_exists($class, $method)) {
-        call_user_func([new $class, $method]);
+        call_user_func_array([new $class, $method], $params);
       } else {
-        throw new \AWSD\Exception\HttpException("Method not allowed", 405);
+        throw new \AWSD\Exception\HttpException("The specified class or method does not exist", 405);
       }
     } else {
-      throw new \AWSD\Exception\HttpException("Invalid action.", 500);
+      throw new \AWSD\Exception\HttpException("Invalid action provided", 500);
     }
   }
 }

@@ -1,10 +1,15 @@
 [
-
   {
     "path": "/",
     "method": "GET",
     "controller": "HomeController",
     "action": "index"
+  },
+  {
+    "path": "/article/{id}",
+    "method": "GET",
+    "controller": "ArticleController",
+    "action": "show"
   },
   {
     "path": "/action",
