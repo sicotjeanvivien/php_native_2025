@@ -2,6 +2,8 @@
 
 namespace AWSD\Router;
 
+use AWSD\Utils\Sanitization;
+
 class Route
 {
   private array $parameters = [];
@@ -94,6 +96,7 @@ class Route
   {
     if (preg_match($this->pattern, $requestUri, $matches)) {
       array_shift($matches);
+      $matches = Sanitization::clean($matches);
       return array_combine($this->parameters, $matches);
     }
 

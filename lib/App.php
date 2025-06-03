@@ -6,8 +6,8 @@ use AWSD\Utils\Env;
 use AWSD\Router\Router;
 use AWSD\Template\View;
 use AWSD\Exception\HttpException;
-use AWSD\Router\Route;
 use AWSD\Utils\Log;
+use AWSD\Utils\Sanitization;
 
 /**
  * Class App
@@ -22,6 +22,7 @@ class App
   public static function bootstrap(): void
   {
     self::initEnv();
+    Sanitization::sanitizeGlobals();
     self::initRouter();
   }
 
@@ -40,12 +41,8 @@ class App
    */
   private static function initRouter(): void
   {
-    $routesConfig = json_decode(file_get_contents(ROOT_PATH . "/config/routes.json"), true);
+    $routesConfig = json_decode(file_get_contents(ROOT_PATH . '/config/routes.json'), true);
     $router = new Router($routesConfig);
-
-    // $router = new Router();
-    // $router->get("/", [\App\Controller\HomeController::class, "index"]);
-    // $router->get("/action", fn() => print("callback action"));
 
     $method = $_SERVER['REQUEST_METHOD'] ?? 'GET';
     $uri = parse_url($_SERVER['REQUEST_URI'] ?? '/', PHP_URL_PATH);
