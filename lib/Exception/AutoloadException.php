@@ -2,8 +2,6 @@
 
 namespace AWSD\Exception;
 
-use RuntimeException;
-
 /**
  * Class AutoloadException
  *
@@ -14,4 +12,4 @@ use RuntimeException;
  *
  * @package AWSD\Exception
  */
-class AutoloadException extends RuntimeException {}
+class AutoloadException extends AbstractException {}

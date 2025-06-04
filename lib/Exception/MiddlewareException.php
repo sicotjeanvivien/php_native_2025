@@ -2,8 +2,6 @@
 
 namespace AWSD\Exception;
 
-use RuntimeException;
-
 /**
  * Class MiddlewareException
  *
@@ -14,4 +12,4 @@ use RuntimeException;
  *
  * @package AWSD\Exception
  */
-class MiddlewareException extends RuntimeException {}
+class MiddlewareException extends AbstractException {}

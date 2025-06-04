@@ -64,9 +64,11 @@ class App
     try {
       $router->dispatch($method, $uri);
     } catch (HttpException $e) {
+      Log::logRequest($e->getStatusCode());
       View::renderError($e->getStatusCode(), $e->getMessage());
       Log::captureError($e);
     } catch (MiddlewareException $e) {
+      Log::logRequest($e->getStatusCode());
       View::renderError(403, $e->getMessage());
       Log::captureError($e);
     }
