@@ -15,5 +15,11 @@
     "path": "/action",
     "method": "GET",
     "action": "Hello depuis un callback simple"
+  },
+  {
+    "path": "/login",
+    "method": "GET",
+    "controller": "UserController",
+    "action": "login"
   }
 ]

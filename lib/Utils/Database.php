@@ -14,12 +14,34 @@ use AWSD\Exception\HttpException;
  */
 class Database
 {
+
+  private static ?PDO $instance = null;
+
   private string $db_driver;
   private string $db_host;
   private string $db_port;
   private string $db_name;
   private string $db_username;
   private string $db_password;
+
+
+  /**
+   * Returns the shared PDO instance (singleton).
+   *
+   * If no connection has been established yet, it creates one.
+   *
+   * @return PDO The shared PDO connection.
+   * @throws HttpException If connection fails.
+   */
+  public static function getInstance(): PDO
+  {
+    if (self::$instance === null) {
+      $db = new self();
+      self::$instance = $db->connect();
+    }
+
+    return self::$instance;
+  }
 
   /**
    * Constructs the Database object and loads the environment configuration.
@@ -29,30 +51,6 @@ class Database
   public function __construct()
   {
     $this->loadEnvConfig();
-  }
-
-  /**
-   * Automatically hydrates the class properties with corresponding environment variables.
-   *
-   * This method uses reflection to set the class properties with values from environment variables.
-   *
-   * @throws HttpException If any required environment variable is missing.
-   */
-  private function loadEnvConfig(): void
-  {
-    $reflection = new ReflectionClass($this);
-
-    foreach ($reflection->getProperties() as $property) {
-      $property->setAccessible(true);
-      $envKey = strtoupper($property->getName());
-      $value = $_ENV[$envKey] ?? null;
-
-      if ($value === null) {
-        throw new HttpException("Missing environment variable: {$envKey}", 500);
-      }
-
-      $property->setValue($this, $value);
-    }
   }
 
   /**
@@ -76,6 +74,30 @@ class Database
       return $pdo;
     } catch (PDOException $e) {
       throw new HttpException("Database connection failed: " . $e->getMessage(), 500);
+    }
+  }
+
+  /**
+   * Automatically hydrates the class properties with corresponding environment variables.
+   *
+   * This method uses reflection to set the class properties with values from environment variables.
+   *
+   * @throws HttpException If any required environment variable is missing.
+   */
+  private function loadEnvConfig(): void
+  {
+    $reflection = new ReflectionClass($this);
+
+    foreach ($reflection->getProperties() as $property) {
+      $property->setAccessible(true);
+      $envKey = strtoupper($property->getName());
+      $value = $_ENV[$envKey] ?? null;
+
+      if ($value === null) {
+        throw new HttpException("Missing environment variable: {$envKey}", 500);
+      }
+
+      $property->setValue($this, $value);
     }
   }
 

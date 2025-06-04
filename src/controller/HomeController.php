@@ -8,10 +8,10 @@ use AWSD\Utils\Database;
 class HomeController extends AbsctractController
 {
 
-  function index()
+  function index():void
   {
-    $database = new Database();
-    $conn = $database->connect();
+    $pdo = Database::getInstance();
+    $pdo->errorCode();
     $this->renderView("home/index", [
       "title" => "HomePage"
     ]);
