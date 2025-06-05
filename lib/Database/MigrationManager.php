@@ -2,6 +2,7 @@
 
 namespace AWSD\Database;
 
+use AWSD\Database\Query\SqlQueryGenerator;
 use AWSD\Utils\Log;
 use RuntimeException;
 
@@ -114,6 +115,7 @@ class MigrationManager
    */
   private function createMigrationTable(): void
   {
+    // $sqlQueryGenerator = new SqlQueryGenerator();
     $this->queryExecutor->executeNonQuery(self::QUERY_CREATE_TABLE_MIGRATION);
   }
 }
