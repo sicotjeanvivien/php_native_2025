@@ -10,27 +10,53 @@ use AWSD\Exception\HttpException;
 /**
  * Class Database
  *
- * This class provides methods to manage database connections using environment variables.
+ * Provides a database abstraction layer that supports multiple drivers (MySQL, PostgreSQL, SQLite).
+ * Configuration is loaded dynamically from environment variables via reflection.
+ * This class also implements the singleton pattern for PDO connection reuse.
  */
 class Database
 {
-
+  /**
+   * @var PDO|null Singleton PDO instance shared across the application.
+   */
   private static ?PDO $instance = null;
 
-  private string $db_driver;
-  private string $db_host;
-  private string $db_port;
-  private string $db_name;
-  private string $db_username;
-  private string $db_password;
+  /**
+   * @var string|null The database driver (e.g. mysql, pgsql, sqlite).
+   */
+  private ?string $db_driver;
 
+  /**
+   * @var string|null The database host (only for MySQL/PostgreSQL).
+   */
+  private ?string $db_host;
+
+  /**
+   * @var string|null The database port (only for MySQL/PostgreSQL).
+   */
+  private ?string $db_port;
+
+  /**
+   * @var string|null The database name or file path (depending on driver).
+   */
+  private ?string $db_name;
+
+  /**
+   * @var string|null The username for database authentication.
+   */
+  private ?string $db_username;
+
+  /**
+   * @var string|null The password for database authentication.
+   */
+  private ?string $db_password;
 
   /**
    * Returns the shared PDO instance (singleton).
    *
-   * If no connection has been established yet, it creates one.
+   * If the connection has not yet been initialized, it is created.
    *
-   * @return PDO The shared PDO connection.
+   * @return PDO The shared database connection.
    * @throws HttpException If connection fails.
    */
   public static function getInstance(): PDO
@@ -44,9 +70,9 @@ class Database
   }
 
   /**
-   * Constructs the Database object and loads the environment configuration.
+   * Database constructor.
    *
-   * @throws HttpException If any required environment variable is missing.
+   * Loads environment configuration and prepares connection parameters.
    */
   public function __construct()
   {
@@ -54,85 +80,96 @@ class Database
   }
 
   /**
-   * Establishes a connection to the database.
+   * Establishes a PDO connection using the configured driver and credentials.
    *
-   * This method builds the DSN and creates a new PDO instance to connect to the database.
-   *
-   * @return PDO The PDO instance representing the database connection.
-   * @throws HttpException If the database connection fails.
+   * @return PDO The active PDO connection.
+   * @throws HttpException If the connection fails.
    */
   public function connect(): PDO
   {
     $dsn = $this->buildDsn();
 
     try {
-      $pdo = new PDO($dsn, $this->db_username, $this->db_password, [
+      return new PDO($dsn, $this->db_username, $this->db_password, [
         PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
-        PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC
+        PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
       ]);
-
-      return $pdo;
     } catch (PDOException $e) {
       throw new HttpException("Database connection failed: " . $e->getMessage(), 500);
     }
   }
 
   /**
-   * Automatically hydrates the class properties with corresponding environment variables.
+   * Loads environment configuration by setting all properties dynamically.
    *
-   * This method uses reflection to set the class properties with values from environment variables.
-   *
-   * @throws HttpException If any required environment variable is missing.
+   * Uses reflection to match private property names to $_ENV variables.
    */
   private function loadEnvConfig(): void
   {
     $reflection = new ReflectionClass($this);
-
     foreach ($reflection->getProperties() as $property) {
       $property->setAccessible(true);
       $envKey = strtoupper($property->getName());
-      $value = $_ENV[$envKey] ?? null;
-
-      if ($value === null) {
-        throw new HttpException("Missing environment variable: {$envKey}", 500);
-      }
-
-      $property->setValue($this, $value);
+      $property->setValue($this, $_ENV[$envKey] ?? null);
     }
   }
 
   /**
-   * Builds the Data Source Name (DSN) for the database connection.
+   * Builds the Data Source Name (DSN) string based on the driver and configuration.
    *
-   * This method constructs the DSN based on the database driver.
-   *
-   * @return string The DSN for the database connection.
-   * @throws HttpException If the database driver is unsupported.
+   * @return string The constructed DSN string.
+   * @throws HttpException If the driver is unsupported or a required config is missing.
    */
   private function buildDsn(): string
   {
     switch (strtolower($this->db_driver)) {
       case 'mysql':
       case 'mariadb':
-        return "mysql:" . http_build_query([
+        $this->requireEnvFields(['db_host', 'db_port', 'db_name', 'db_username', 'db_password']);
+        return 'mysql:' . http_build_query([
           'host' => $this->db_host,
           'port' => $this->db_port,
           'dbname' => $this->db_name,
-          'charset' => 'utf8mb4'
+          'charset' => 'utf8mb4',
         ], '', ';');
 
       case 'pgsql':
-        return "pgsql:" . http_build_query([
+        $this->requireEnvFields(['db_host', 'db_port', 'db_name', 'db_username', 'db_password']);
+        return 'pgsql:' . http_build_query([
           'host' => $this->db_host,
           'port' => $this->db_port,
-          'dbname' => $this->db_name
+          'dbname' => $this->db_name,
         ], '', ';');
 
       case 'sqlite':
-        return "sqlite:" . $this->db_name; // db_name = chemin vers le fichier .sqlite
+        $this->requireEnvFields(['db_name']);
+        return 'sqlite:' . $this->db_name;
 
       default:
         throw new HttpException("Unsupported database driver: {$this->db_driver}", 500);
+    }
+  }
+
+  /**
+   * Verifies that all required configuration fields are defined.
+   *
+   * @param array $fields List of property names to validate (e.g. 'db_host').
+   * @throws HttpException If any required value is missing or undefined.
+   */
+  private function requireEnvFields(array $fields): void
+  {
+    $reflectionClass = new ReflectionClass($this);
+
+    foreach ($fields as $field) {
+      if ($reflectionClass->hasProperty($field)) {
+        $property = $reflectionClass->getProperty($field);
+        $property->setAccessible(true);
+        if ($property->getValue($this) === null) {
+          throw new HttpException("Missing required environment variable: " . strtoupper($field), 500);
+        }
+      } else {
+        throw new HttpException("Unknown configuration field: {$field}", 500);
+      }
     }
   }
 }
