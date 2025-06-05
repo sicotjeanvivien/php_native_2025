@@ -2,46 +2,46 @@
 
 namespace AWSD\Model;
 
-use AWSD\Utils\Database;
-use PDO;
-use PDOStatement;
+use AWSD\Database\QueryExecutor;
 
 /**
  * Class AbstractRepository
  *
- * Abstract base class for repository classes. Provides common database operations
- * and serves as a foundation for specific repository implementations.
+ * Base abstract class for all data repositories.
+ * Provides shared functionality to interact with a database table using PDO,
+ * including entity hydration, field validation, and data fetching logic.
  */
 abstract class AbstractRepository
 {
-  /**
-   * @var PDO The database connection instance.
-   */
-  protected PDO $database;
 
   /**
-   * @var string The name of the database table associated with the repository.
+   * @var QueryExecutor Handles execution of SQL queries with proper binding and entity hydration.
+   */
+  protected QueryExecutor $queryExecutor;
+
+  /**
+   * @var string The name of the database table mapped to the entity.
    */
   protected readonly  string $table;
 
   /**
-   * @var string The fully qualified class name of the entity associated with the repository.
+   * @var string The FQCN of the entity used for hydration.
    */
   protected readonly string $entityClass;
 
   /**
-   * @var array the fields possible to filter request sql
+   * @var array<string> List of fields available in the entity, used for filtering and validation.
    */
   protected readonly array $fields;
 
   /**
    * AbstractRepository constructor.
    *
-   * Initializes the database connection.
+   * Initializes the Query Executor.
    */
   public function __construct()
   {
-    $this->database = Database::getInstance();
+    $this->queryExecutor = new QueryExecutor($this->entityClass);
     if (!preg_match('/^[a-z_]+$/i', $this->table)) {
       throw new \InvalidArgumentException("Invalid table name: {$this->table}");
     }
@@ -57,11 +57,11 @@ abstract class AbstractRepository
    */
   public function findOneBy(string $field, mixed $value): mixed
   {
-    if (!$this->hasField($field)) {
+    if ($this->isInvalidField($field)) {
       throw new \InvalidArgumentException("Field '{$field}' is not a valid property of entity {$this->entityClass}");
     }
     $query = "SELECT * FROM {$this->table} WHERE {$field} = :{$field} LIMIT 1";
-    return $this->executeQuery($query, [":{$field}" => $value]);
+    return $this->queryExecutor->executeQuery($query, [":{$field}" => $value]);
   }
 
   /**
@@ -72,15 +72,13 @@ abstract class AbstractRepository
   public function findAll(): array
   {
     $query = "SELECT * FROM {$this->table}";
-    return $this->executeQuery($query);
+    return $this->queryExecutor->executeQuery($query);
   }
 
   /**
-   * Returns the list of public/protected property names of the entity class.
+   * Uses reflection to retrieve declared property names of the entity class.
    *
-   * Used to validate queryable fields against entity structure.
-   *
-   * @return array List of available property names.
+   * @return array<string> A list of all properties declared in the entity.
    */
   protected function getEntityFields(): array
   {
@@ -88,6 +86,18 @@ abstract class AbstractRepository
     $properties = $reflection->getProperties();
     return array_map(fn($prop) => $prop->getName(), $properties);
   }
+
+  /**
+   * Checks whether the provided field name does not exist in the entity definition.
+   *
+   * @param string $field The name of the field to check.
+   * @return bool True if the field is invalid, false otherwise.
+   */
+  protected function isInvalidField(string $field): bool
+  {
+    return !$this->hasField($field);
+  }
+
 
   /**
    * Checks if the given field name is a valid property of the entity.
@@ -98,50 +108,5 @@ abstract class AbstractRepository
   protected function hasField(string $field): bool
   {
     return in_array($field, $this->fields);
-  }
-
-  /**
-   * Executes a SQL query with optional parameters.
-   *
-   * @param string $query The SQL query to execute.
-   * @param array $params An associative array of query parameters.
-   * @return mixed The query result, either a single entity, an array of entities, or null.
-   */
-  private function executeQuery(string $query, array $params = []): mixed
-  {
-    $stm = $this->prepareStatement($query, $params);
-    if ($stm->execute()) {
-      $stm->setFetchMode(PDO::FETCH_CLASS, $this->entityClass);
-
-      return match (true) {
-        $stm->rowCount() === 1 => $stm->fetch(),
-        $stm->rowCount() > 1   => $stm->fetchAll(),
-        default                => null
-      };
-    }
-    return null;
-  }
-
-  /**
-   * Prepares a PDOStatement with bound parameters.
-   *
-   * @param string $query The SQL query.
-   * @param array $params The parameters to bind.
-   * @return \PDOStatement The prepared and bound statement.
-   */
-  private function prepareStatement(string $query, array $params = []): PDOStatement
-  {
-    $stm = $this->database->prepare($query);
-    foreach ($params as $key => $param) {
-      $param_type = gettype($param);
-      $pdo_type = match (true) {
-        $param_type === 'integer' => PDO::PARAM_INT,
-        $param_type === 'boolean' => PDO::PARAM_BOOL,
-        $param_type === 'null' => PDO::PARAM_NULL,
-        $param_type === 'string' => PDO::PARAM_STR,
-      };
-      $stm->bindValue($key, $param, $pdo_type);
-    }
-    return $stm;
   }
 }

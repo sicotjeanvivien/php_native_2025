@@ -4,7 +4,7 @@ namespace AWSD\Exception;
 
 use RuntimeException;
 
-class AbstractException extends RuntimeException
+abstract class AbstractException extends RuntimeException
 {
   /**
    * The HTTP status code associated with the exception.

@@ -4,7 +4,7 @@ namespace App\Model\User;
 
 use AWSD\Model\AbstractRepository;
 
-class UserRepository extends AbstractRepository
+final class UserRepository extends AbstractRepository
 {
   public function __construct()
   {

@@ -1,6 +1,6 @@
 <?php
 
-namespace AWSD\Utils;
+namespace AWSD\Database;
 
 use PDO;
 use PDOException;

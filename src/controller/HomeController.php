@@ -3,7 +3,7 @@
 namespace App\Controller;
 
 use AWSD\Controller\AbsctractController;
-use AWSD\Utils\Database;
+use AWSD\Database\Database;
 
 class HomeController extends AbsctractController
 {

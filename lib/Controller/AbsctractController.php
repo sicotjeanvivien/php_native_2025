@@ -4,7 +4,7 @@ namespace AWSD\Controller;
 
 use AWSD\Template\View;
 
-class AbsctractController
+abstract class AbsctractController
 {
   public function renderView(string $templateName, array $params = []): mixed
   {
