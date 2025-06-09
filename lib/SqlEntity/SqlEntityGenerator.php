@@ -1,8 +1,14 @@
 <?php
 
-namespace AWSD\Database\Query;
+namespace AWSD\SqlEntity;
 
-class SqlQueryGenerator
+use AWSD\SqlEntity\Query\CreateQuery;
+use AWSD\SqlEntity\Query\DeleteQuery;
+use AWSD\SqlEntity\Query\InsertQuery;
+use AWSD\SqlEntity\Query\SelectQuery;
+use AWSD\SqlEntity\Query\UpdateQuery;
+
+class SqlEntityGenerator
 {
   private CreateQuery $createQuery;
   private SelectQuery $selectQuery;

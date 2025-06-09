@@ -2,11 +2,13 @@
 
 namespace App\Model\User;
 
-class UserEntity
+use AWSD\Model\AbstractEntity;
+
+class UserEntity extends AbstractEntity
 {
-  private int $id;
-  private string $email;
-  private string $password;
+  protected int $id;
+  protected string $email;
+  protected string $password;
 
   public function getId(): int
   {

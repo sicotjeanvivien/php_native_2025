@@ -2,7 +2,9 @@
 
 namespace AWSD\Database;
 
-use AWSD\Database\Query\SqlQueryGenerator;
+use AWSD\Model\Migration;
+use AWSD\SqlEntity\Query;
+use AWSD\SqlEntity\SqlEntityGenerator;
 use AWSD\Utils\Log;
 use RuntimeException;
 
@@ -107,6 +109,7 @@ class MigrationManager
    */
   private function saveMigrationExecuted(string $migration): void
   {
+    var_dump("= = =");
     $this->queryExecutor->executeNonQuery("INSERT INTO migrations (filename) VALUES (:filename)", [":filename" => $migration]);
   }
 
@@ -115,7 +118,12 @@ class MigrationManager
    */
   private function createMigrationTable(): void
   {
-    // $sqlQueryGenerator = new SqlQueryGenerator();
-    $this->queryExecutor->executeNonQuery(self::QUERY_CREATE_TABLE_MIGRATION);
+
+    $migration = new Migration();
+
+    $SqlEntityGenrator =  new SqlEntityGenerator($migration);
+    $querySqlCreate = $SqlEntityGenrator->create();
+
+    $this->queryExecutor->executeNonQuery($querySqlCreate);
   }
 }

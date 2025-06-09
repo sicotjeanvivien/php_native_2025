@@ -45,7 +45,7 @@ class QueryExecutor
   public function executeNonQuery(string $query, array $params = []): int
   {
     $stm = $this->prepareStatement($query, $params);
-    return $stm->execute() ? $stm->rowCount() : 0;
+    return $stm->execute();
   }
 
   /**

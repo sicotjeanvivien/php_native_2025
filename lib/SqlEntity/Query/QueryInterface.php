@@ -1,6 +1,6 @@
 <?php
 
-namespace AWSD\Database\Query;
+namespace AWSD\SqlEntity\Query;
 
 interface QueryInterface
 {
