@@ -5,6 +5,7 @@ namespace AWSD\Schema\Migration;
 use AWSD\Database\QueryExecutor;
 use AWSD\Model\Migration;
 use AWSD\Schema\EntitySchemaBuilder;
+use AWSD\Schema\Scanner\EntityScanner;
 use AWSD\Utils\Log;
 use RuntimeException;
 
@@ -25,6 +26,7 @@ class MigrationManager
 {
 
   private const MIGRATION_PATH =  ROOT_PATH . '/migrations';
+  private const ENTITY_PATH = ROOT_PATH . '/src/Model';
 
   /**
    * @var QueryExecutor Handles execution of SQL queries with proper binding and entity hydration.
@@ -41,7 +43,12 @@ class MigrationManager
 
   public function generate(): void
   {
-    # code...
+    $entities = EntityScanner::findEntities(self::ENTITY_PATH);
+    foreach ($entities as $entity) {
+      $sql = $this->generateRequestCreate($entity);
+      $tableName = strtolower((new \ReflectionClass($entity))->getShortName()) . 's';
+      $this->generateFile($tableName, $sql);
+    }
   }
 
   /**
@@ -54,6 +61,25 @@ class MigrationManager
   {
     $migrationsToRun  = $this->scanMigrations();
     $this->executeMigrations($migrationsToRun);
+  }
+
+
+  private function generateRequestCreate(object $entity): string
+  {
+    $builder = new EntitySchemaBuilder($entity);
+    return $builder->create();
+  }
+
+
+  private function generateFile(string $tableName, string $sql): void
+  {
+    $timestamp = date('Ymd_His');
+    $filename = "{$timestamp}_create_{$tableName}_table.sql";
+    $path = self::MIGRATION_PATH . "/$filename";
+
+    file_put_contents($path, "-- Migration auto-générée\n$sql");
+
+    echo "✅ Migration generated: $filename\n";
   }
 
   /**

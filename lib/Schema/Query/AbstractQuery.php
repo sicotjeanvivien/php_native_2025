@@ -55,6 +55,12 @@ abstract class AbstractQuery implements QueryInterface
   protected function resolveTableName(): string
   {
     $name = $this->reflection->getShortName();
+    $name = str_replace('Entity', '', $name);
+
+    if (str_ends_with($name, 'y')) {
+      return strtolower(substr($name, 0, -1)) . 'ies';
+    }
+
     return strtolower($name) . 's';
   }
 

@@ -27,7 +27,7 @@ class PostgresMapper extends AbstractSgbdMapper
     return match ($this->typeSql) {
       EntityType::INT       => 'integer',
       EntityType::FLOAT     => 'double precision',
-      EntityType::STRING    => 'varchar',
+      EntityType::STRING    => 'varchar(255)',
       EntityType::BOOL      => 'boolean',
       EntityType::DATETIME  => 'timestamp',
       EntityType::ARRAY     => 'jsonb',
@@ -57,7 +57,7 @@ class PostgresMapper extends AbstractSgbdMapper
       $parts[] = 'PRIMARY KEY';
     }
 
-    if ($this->metadata->default !== null) {
+    if ($this->metadata->default !== null && $this->metadata->default !== "ON UPDATE CURRENT_TIMESTAMP") {
       $parts[] = 'DEFAULT ' . $this->quoteDefault($this->metadata->default);
     }
 
