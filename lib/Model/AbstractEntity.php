@@ -2,18 +2,39 @@
 
 namespace AWSD\Model;
 
-use AWSD\SqlEntity\Attribute\Type;
-use AWSD\SqlEntity\Enum\TypeEnum;
 use DateTime;
+use AWSD\SqlEntity\Attribute\Type;
+use AWSD\SqlEntity\Enum\EntityType;
 
+/**
+ * AbstractEntity
+ *
+ * Base class for all entity models.
+ * Provides common fields such as ID, creation date, and update date.
+ * These fields are pre-annotated with #[Type] to define their SQL mapping behavior.
+ *
+ * Any concrete entity should extend this class to inherit ID and timestamp support.
+ */
 abstract class AbstractEntity
 {
-  #[Type(type: TypeEnum::INT, primary: true, autoincrement: true)]
+  /**
+   * Primary key for the entity.
+   * Auto-incremented integer, mapped to SERIAL / AUTO_INCREMENT / AUTOINCREMENT depending on the SQL dialect.
+   */
+  #[Type(type: EntityType::INT, primary: true, autoincrement: true)]
   protected int $id;
 
-  #[Type(type: TypeEnum::DATETIME, default: "CURRENT_TIMESTAMP")]
+  /**
+   * Creation timestamp.
+   * Defaulted to CURRENT_TIMESTAMP by the database engine.
+   */
+  #[Type(type: EntityType::DATETIME, default: "CURRENT_TIMESTAMP")]
   protected DateTime $createdAt;
 
-  #[Type(type: TypeEnum::DATETIME, default: "CURRENT_TIMESTAMP")]
+  /**
+   * Last update timestamp.
+   * Defaulted to CURRENT_TIMESTAMP; may be updated by database logic or manually.
+   */
+  #[Type(type: EntityType::DATETIME, default: "CURRENT_TIMESTAMP")]
   protected DateTime $updatedAt;
 }

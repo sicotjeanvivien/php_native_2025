@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Script;
+namespace AWSD\Script\Migration;
 
 use AWSD\Script\AbstractScript;
 use AWSD\Database\MigrationManager;
@@ -21,7 +21,7 @@ use AWSD\Database\MigrationManager;
  *
  * @package App\Script
  */
-final class MigrationScript extends AbstractScript
+final class RunMigrationScript extends AbstractScript
 {
   /**
    * Executes the migration workflow.

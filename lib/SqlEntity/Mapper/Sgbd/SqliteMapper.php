@@ -2,31 +2,55 @@
 
 namespace AWSD\SqlEntity\Mapper\Sgbd;
 
-use AWSD\SqlEntity\Enum\TypeEnum;
+use AWSD\SqlEntity\Enum\EntityType;
 
+/**
+ * SqliteMapper
+ *
+ * Maps an entity field to its corresponding SQLite type and SQL constraints.
+ * SQLite uses dynamic typing, so most types are mapped to TEXT, REAL, or INTEGER.
+ * Handles the special case for 'INTEGER PRIMARY KEY AUTOINCREMENT'.
+ */
 class SqliteMapper extends AbstractSgbdMapper
 {
+  /**
+   * Resolves the SQLite column type for the given logical entity type.
+   *
+   * @return string SQLite-compatible column type (e.g. TEXT, REAL, INTEGER).
+   */
   public function getType(): string
   {
     return match ($this->typeSql) {
-      TypeEnum::INT        => 'INTEGER',
-      TypeEnum::FLOAT      => 'REAL',
-      TypeEnum::STRING     => 'TEXT',
-      TypeEnum::BOOL       => 'INTEGER',
-      TypeEnum::DATETIME   => 'TEXT',
-      TypeEnum::ARRAY      => 'TEXT',
-      TypeEnum::OBJECT     => 'TEXT',
-      TypeEnum::MIXED      => 'TEXT',
-      TypeEnum::UUID       => 'TEXT',
-      TypeEnum::TEXT       => 'TEXT',
-      default              => 'TEXT'
+      EntityType::INT        => 'INTEGER',
+      EntityType::FLOAT      => 'REAL',
+      EntityType::STRING     => 'TEXT',
+      EntityType::BOOL       => 'INTEGER',
+      EntityType::DATETIME   => 'TEXT',
+      EntityType::ARRAY      => 'TEXT',
+      EntityType::OBJECT     => 'TEXT',
+      EntityType::MIXED      => 'TEXT',
+      EntityType::UUID       => 'TEXT',
+      EntityType::TEXT       => 'TEXT',
+      default                => 'TEXT'
     };
   }
 
+  /**
+   * Builds the constraint string for the column based on metadata.
+   * Handles SQLite's strict rule for autoincrement: must be INTEGER PRIMARY KEY AUTOINCREMENT.
+   *
+   * @return string The SQL constraint clause for the field.
+   */
   public function getConstraints(): string
   {
-    if (!$this->metadata) return '';
-    if ($this->isPrimaryKeyAutoincrement()) return 'PRIMARY KEY AUTOINCREMENT';
+    if (!$this->metadata) {
+      return '';
+    }
+
+    // Special case for autoincrementing primary key
+    if ($this->isPrimaryKeyAutoincrement()) {
+      return 'PRIMARY KEY AUTOINCREMENT';
+    }
 
     $parts = [];
 
@@ -43,11 +67,16 @@ class SqliteMapper extends AbstractSgbdMapper
     return implode(' ', $parts);
   }
 
-
+  /**
+   * Determines whether the field should be defined as INTEGER PRIMARY KEY AUTOINCREMENT,
+   * which is a special constraint in SQLite that implies rowid-based indexing.
+   *
+   * @return bool True if the field is an autoincrementing primary key on an INTEGER column.
+   */
   private function isPrimaryKeyAutoincrement(): bool
   {
-    return $this->typeSql === TypeEnum::INT &&
-      $this->metadata->primary &&
-      $this->metadata->autoincrement;
+    return $this->typeSql === EntityType::INT
+      && $this->metadata->primary
+      && $this->metadata->autoincrement;
   }
 }

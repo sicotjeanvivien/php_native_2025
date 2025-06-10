@@ -3,19 +3,19 @@
 namespace AWSD\Model;
 
 use AWSD\SqlEntity\Attribute\Type;
-use AWSD\SqlEntity\Enum\TypeEnum;
+use AWSD\SqlEntity\Enum\EntityType;
 use DateTime;
 
 class Migration
 {
 
-  #[Type(type: TypeEnum::INT, primary: true, autoincrement: true)]
+  #[Type(type: EntityType::INT, primary: true, autoincrement: true)]
   protected int $id;
 
-  #[Type(type: TypeEnum::TEXT, nullable: false)]
+  #[Type(type: EntityType::TEXT, nullable: false)]
   private string $filename;
 
-  #[Type(type: TypeEnum::DATETIME, nullable: false, default: 'CURRENT_TIMESTAMP')]
+  #[Type(type: EntityType::DATETIME, nullable: false, default: 'CURRENT_TIMESTAMP')]
   private DateTime $executedAt;
 
   public function getId(): int

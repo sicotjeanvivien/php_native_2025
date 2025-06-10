@@ -1,0 +1,24 @@
+#!/usr/bin/env php
+<?php
+
+require_once dirname(__DIR__) . '\lib\Script\AbstractScript.php';
+require_once dirname(__DIR__) . '\lib\Script\Migration\RunMigrationScript.php';
+
+$routes = [
+  'migration:run'      => \AWSD\Script\Migration\RunMigrationScript::class,
+  'migration:generate' => \AWSD\Script\Migration\GenerateMigrationScript::class,
+];
+
+$command = $argv[1] ?? null;
+
+if (!isset($routes[$command])) {
+  echo "Unknown command: $command\n";
+  echo "Available commands:\n";
+  foreach (array_keys($routes) as $name) {
+    echo "  - $name\n";
+  }
+  exit(1);
+}
+
+$script = new $routes[$command]();
+$script->execute();
