@@ -1,9 +1,9 @@
 <?php
 
-namespace AWSD\SqlEntity\Mapper\Sgbd;
+namespace AWSD\Schema\Mapper\Sgbd;
 
-use AWSD\SqlEntity\Attribute\Type;
-use AWSD\SqlEntity\Enum\EntityType;
+use AWSD\Schema\Attribute\Type;
+use AWSD\Schema\Enum\EntityType;
 
 /**
  * AbstractSgbdMapper

@@ -2,8 +2,8 @@
 
 namespace AWSD\Script\Migration;
 
+use AWSD\Schema\Migration\MigrationManager;
 use AWSD\Script\AbstractScript;
-use AWSD\Database\MigrationManager;
 
 /**
  * Class MigrationScript

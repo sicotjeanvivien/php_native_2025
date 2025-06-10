@@ -1,10 +1,10 @@
 <?php
 
-namespace AWSD\SqlEntity\Query;
+namespace AWSD\Schema\Query;
 
 use ReflectionClass;
 use ReflectionProperty;
-use AWSD\SqlEntity\Mapper\TypeMapper;
+use AWSD\Schema\Mapper\TypeMapper;
 
 /**
  * AbstractQuery

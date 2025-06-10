@@ -3,6 +3,7 @@
 
 require_once dirname(__DIR__) . '\lib\Script\AbstractScript.php';
 require_once dirname(__DIR__) . '\lib\Script\Migration\RunMigrationScript.php';
+require_once dirname(__DIR__) . '\lib\Script\Migration\GenerateMigrationScript.php';
 
 $routes = [
   'migration:run'      => \AWSD\Script\Migration\RunMigrationScript::class,

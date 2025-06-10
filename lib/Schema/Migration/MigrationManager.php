@@ -1,10 +1,10 @@
 <?php
 
-namespace AWSD\Database;
+namespace AWSD\Schema\Migration;
 
+use AWSD\Database\QueryExecutor;
 use AWSD\Model\Migration;
-use AWSD\SqlEntity\Query;
-use AWSD\SqlEntity\SqlEntityGenerator;
+use AWSD\Schema\EntitySchemaBuilder;
 use AWSD\Utils\Log;
 use RuntimeException;
 
@@ -119,8 +119,8 @@ class MigrationManager
 
     $migration = new Migration();
 
-    $SqlEntityGenrator =  new SqlEntityGenerator($migration);
-    $querySqlCreate = $SqlEntityGenrator->create();
+    $schemaBuilder =  new EntitySchemaBuilder($migration);
+    $querySqlCreate = $schemaBuilder->create();
 
     $this->queryExecutor->executeNonQuery($querySqlCreate);
   }

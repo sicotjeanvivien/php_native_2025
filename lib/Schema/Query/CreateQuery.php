@@ -1,6 +1,6 @@
 <?php
 
-namespace AWSD\SqlEntity\Query;
+namespace AWSD\Schema\Query;
 
 /**
  * CreateQuery

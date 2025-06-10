@@ -1,6 +1,6 @@
 <?php
 
-namespace AWSD\SqlEntity\Enum;
+namespace AWSD\Schema\Enum;
 
 /**
  * EntityType

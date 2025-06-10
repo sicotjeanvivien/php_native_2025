@@ -1,6 +1,6 @@
 <?php
 
-namespace AWSD\SqlEntity\Mapper\Sgbd;
+namespace AWSD\Schema\Mapper\Sgbd;
 
 /**
  * SgbdMapperInterface

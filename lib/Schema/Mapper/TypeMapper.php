@@ -1,14 +1,14 @@
 <?php
 
-namespace AWSD\SqlEntity\Mapper;
+namespace AWSD\Schema\Mapper;
 
 use ReflectionProperty;
-use AWSD\SqlEntity\Attribute\Type;
-use AWSD\SqlEntity\Enum\SqlDialect;
-use AWSD\SqlEntity\Enum\EntityType;
-use AWSD\SqlEntity\Mapper\Sgbd\MysqlMapper;
-use AWSD\SqlEntity\Mapper\Sgbd\PostgresMapper;
-use AWSD\SqlEntity\Mapper\Sgbd\SqliteMapper;
+use AWSD\Schema\Attribute\Type;
+use AWSD\Schema\Enum\SqlDialect;
+use AWSD\Schema\Enum\EntityType;
+use AWSD\Schema\Mapper\Sgbd\MysqlMapper;
+use AWSD\Schema\Mapper\Sgbd\PostgresMapper;
+use AWSD\Schema\Mapper\Sgbd\SqliteMapper;
 
 /**
  * TypeMapper

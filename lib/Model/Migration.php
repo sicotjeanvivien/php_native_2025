@@ -2,8 +2,8 @@
 
 namespace AWSD\Model;
 
-use AWSD\SqlEntity\Attribute\Type;
-use AWSD\SqlEntity\Enum\EntityType;
+use AWSD\Schema\Attribute\Type;
+use AWSD\Schema\Enum\EntityType;
 use DateTime;
 
 class Migration

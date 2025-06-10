@@ -1,8 +1,8 @@
 <?php
 
-namespace AWSD\SqlEntity\Mapper\Sgbd;
+namespace AWSD\Schema\Mapper\Sgbd;
 
-use AWSD\SqlEntity\Enum\EntityType;
+use AWSD\Schema\Enum\EntityType;
 
 /**
  * MysqlMapper

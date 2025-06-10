@@ -1,8 +1,8 @@
 <?php
 
-namespace AWSD\SqlEntity\Attribute;
+namespace AWSD\Schema\Attribute;
 
-use AWSD\SqlEntity\Enum\EntityType;
+use AWSD\Schema\Enum\EntityType;
 
 /**
  * Attribute #[Type]

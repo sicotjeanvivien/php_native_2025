@@ -1,8 +1,8 @@
 <?php
 
-namespace AWSD\SqlEntity\Query;;
+namespace AWSD\Schema\Query;
 
-class SelectQuery extends AbstractQuery
+class InsertQuery extends AbstractQuery
 {
 
   public function generateSql(): string
