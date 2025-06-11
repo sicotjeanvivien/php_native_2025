@@ -3,29 +3,22 @@
 namespace AWSD\Schema;
 
 use AWSD\Schema\Query\CreateQuery;
-use AWSD\Schema\Query\DeleteQuery;
-use AWSD\Schema\Query\InsertQuery;
-use AWSD\Schema\Query\SelectQuery;
-use AWSD\Schema\Query\UpdateQuery;
+use AWSD\Schema\Query\IndexQuery;
+use AWSD\Schema\Query\TriggerQuery;
 
 class EntitySchemaBuilder
 {
-  private CreateQuery $createQuery;
-  private SelectQuery $selectQuery;
-  private InsertQuery $insertQuery;
-  private UpdateQuery $updateQuery;
-  private DeleteQuery $deleteQuery;
 
-
-  public function __construct(private object $entity)
-  {
-    $this->createQuery = new CreateQuery($this->entity);
-    $this->selectQuery = new SelectQuery($this->entity);
-  }
+  public function __construct(private object $entity) {}
 
   public function create(): string
   {
-    return $this->createQuery->generateSql();
+    $queries = [
+      (new CreateQuery($this->entity))->generateSql(),
+      (new IndexQuery($this->entity))->generateSql(),
+      (new TriggerQuery($this->entity))->generateSql(),
+    ];
+    return implode("\n\n", $queries);
   }
 
   public function select(): string

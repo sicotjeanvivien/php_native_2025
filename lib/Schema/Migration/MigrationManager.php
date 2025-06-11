@@ -119,7 +119,7 @@ class MigrationManager
       if (!trim($migrationQuery)) {
         throw new RuntimeException("Migration file is empty: $migrationPath");
       }
-      if ($this->queryExecutor->executeNonQuery($migrationQuery)) {
+      if ($this->queryExecutor->executeRaw($migrationQuery)) {
         $this->saveMigrationExecuted($migration);
         Log::logToConsole("[Migration] Applied: {$migration}");
       }
@@ -133,7 +133,6 @@ class MigrationManager
    */
   private function saveMigrationExecuted(string $migration): void
   {
-    var_dump("= = =");
     $this->queryExecutor->executeNonQuery("INSERT INTO migrations (filename) VALUES (:filename)", [":filename" => $migration]);
   }
 

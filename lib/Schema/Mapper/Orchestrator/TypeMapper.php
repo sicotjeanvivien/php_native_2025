@@ -1,14 +1,15 @@
 <?php
 
-namespace AWSD\Schema\Mapper;
+namespace AWSD\Schema\Mapper\Orchestrator;
 
 use ReflectionProperty;
 use AWSD\Schema\Attribute\Type;
 use AWSD\Schema\Enum\SqlDialect;
 use AWSD\Schema\Enum\EntityType;
-use AWSD\Schema\Mapper\Sgbd\MysqlMapper;
-use AWSD\Schema\Mapper\Sgbd\PostgresMapper;
-use AWSD\Schema\Mapper\Sgbd\SqliteMapper;
+use AWSD\Schema\Mapper\AbstractMapper;
+use AWSD\Schema\Mapper\SGBD\MySQL\TypeMapper as MySQLTypeMapper;
+use AWSD\Schema\Mapper\SGBD\PostgreSQL\TypeMapper as PostgreSQLTypeMapper;
+use AWSD\Schema\Mapper\SGBD\SQLite\TypeMapper as SQLiteTypeMapper;
 
 /**
  * TypeMapper
@@ -17,14 +18,10 @@ use AWSD\Schema\Mapper\Sgbd\SqliteMapper;
  * to a SQL type and constraint string based on the current SQL dialect (MySQL, PostgreSQL, SQLite).
  * Delegates formatting logic to dialect-specific mappers.
  */
-class TypeMapper
+final class TypeMapper extends AbstractMapper
 {
-  /**
-   * Current SQL dialect used for mapping (resolved from environment).
-   *
-   * @var SqlDialect
-   */
-  private SqlDialect $sqlDialect;
+
+  protected ReflectionProperty $prop;
 
   /**
    * Metadata extracted from the #[Type] attribute on the property, if present.
@@ -40,22 +37,23 @@ class TypeMapper
    */
   private EntityType $typeSql;
 
-  /**
-   * The SGBD-specific mapper responsible for formatting SQL type and constraints.
-   *
-   * @var object
-   */
-  private object $sgbdMapper;
+
+
 
   /**
    * @param ReflectionProperty $prop The property to analyze and map.
    */
-  public function __construct(protected ReflectionProperty $prop)
+  public function __construct(ReflectionProperty $prop, ?Type $metadata)
   {
-    $this->sqlDialect = SqlDialect::fromEnv($_ENV["DB_DRIVER"]);
-    $this->metadata =  $this->getMetadata();
+    parent::__construct();
+    $this->prop = $prop;
+    $this->metadata =  $metadata;
     $this->typeSql = $this->getTypeSql();
-    $this->sgbdMapper = $this->getSgbdMapper();
+    $this->sgbdMapper = $this->getSgbdImplementation([
+      'pgsql'  => new PostgreSQLTypeMapper($this->metadata, $this->typeSql),
+      'sqlite' => new SQLiteTypeMapper($this->metadata, $this->typeSql),
+      'mysql'  => new MySQLTypeMapper($this->metadata, $this->typeSql),
+    ]);
   }
 
   /**
@@ -79,17 +77,6 @@ class TypeMapper
   }
 
   /**
-   * Extracts the #[Type] attribute instance from the property, if present.
-   *
-   * @return Type|null
-   */
-  private function getMetadata(): ?Type
-  {
-    $attributes = $this->prop->getAttributes(Type::class);
-    return $attributes ? $attributes[0]?->newInstance() : null;
-  }
-
-  /**
    * Resolves the EntityType (internal logical type) from the attribute or PHP type.
    *
    * @return EntityType
@@ -102,19 +89,5 @@ class TypeMapper
 
     $phpType = $this->prop->getType()?->getName();
     return EntityType::fromPhp($phpType);
-  }
-
-  /**
-   * Returns the SGBD-specific mapper instance based on the SQL dialect.
-   *
-   * @return object
-   */
-  private function getSgbdMapper(): object
-  {
-    return match ($this->sqlDialect) {
-      SqlDialect::PGSQL  => new PostgresMapper($this->metadata, $this->typeSql),
-      SqlDialect::SQLITE => new SqliteMapper($this->metadata, $this->typeSql),
-      SqlDialect::MYSQL  => new MysqlMapper($this->metadata, $this->typeSql),
-    };
   }
 }

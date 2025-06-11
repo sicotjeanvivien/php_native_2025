@@ -2,6 +2,7 @@
 
 namespace AWSD\Model;
 
+use AWSD\Schema\Attribute\Trigger;
 use DateTime;
 use AWSD\Schema\Attribute\Type;
 use AWSD\Schema\Enum\EntityType;
@@ -36,5 +37,6 @@ abstract class AbstractEntity
    * Defaulted to CURRENT_TIMESTAMP; may be updated by database logic or manually.
    */
   #[Type(type: EntityType::DATETIME, default: "CURRENT_TIMESTAMP")]
+  #[Trigger(onUpdate: true)]
   protected DateTime $updatedAt;
 }

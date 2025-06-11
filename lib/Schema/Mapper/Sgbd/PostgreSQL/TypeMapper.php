@@ -1,8 +1,10 @@
 <?php
 
-namespace AWSD\Schema\Mapper\Sgbd;
+namespace AWSD\Schema\Mapper\SGBD\PostgreSQL;
 
 use AWSD\Schema\Enum\EntityType;
+use AWSD\Schema\Mapper\SGBD\AbstractTypeMapper;
+use AWSD\Schema\Mapper\Sgbd\TypeMapperInterface;
 
 /**
  * PostgresMapper
@@ -10,7 +12,7 @@ use AWSD\Schema\Enum\EntityType;
  * Maps an entity field to PostgreSQL SQL types and constraints.
  * Handles serial auto-increment detection, jsonb types, and default timestamp behavior.
  */
-class PostgresMapper extends AbstractSgbdMapper
+class TypeMapper extends AbstractTypeMapper implements TypeMapperInterface
 {
   /**
    * Resolves the PostgreSQL column type from the entity field type.

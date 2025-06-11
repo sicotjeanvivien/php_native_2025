@@ -1,6 +1,6 @@
 <?php
 
-namespace AWSD\Schema\Mapper\Sgbd;
+namespace AWSD\Schema\Mapper\SGBD;
 
 /**
  * SgbdMapperInterface
@@ -9,7 +9,7 @@ namespace AWSD\Schema\Mapper\Sgbd;
  * Each mapper is responsible for translating a field's logical type and metadata
  * into a SQL-compatible type and constraint string.
  */
-interface SgbdMapperInterface
+interface TypeMapperInterface
 {
   /**
    * Returns the SQL column type for the mapped field.

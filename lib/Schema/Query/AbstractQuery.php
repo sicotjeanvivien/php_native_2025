@@ -2,6 +2,7 @@
 
 namespace AWSD\Schema\Query;
 
+use AWSD\Schema\Attribute\Type;
 use ReflectionClass;
 use ReflectionProperty;
 use AWSD\Schema\Mapper\TypeMapper;
@@ -13,7 +14,7 @@ use AWSD\Schema\Mapper\TypeMapper;
  * Provides utilities to extract metadata from an entity object using reflection,
  * resolve the table name, and build column definitions for SQL generation.
  */
-abstract class AbstractQuery implements QueryInterface
+abstract class AbstractQuery
 {
   /**
    * The entity object to generate a query for.
@@ -36,14 +37,17 @@ abstract class AbstractQuery implements QueryInterface
    */
   protected string $tableName;
 
+  protected array $metadata;
+
   /**
    * @param object $entity The entity instance used as the source for query generation.
    */
-  public function __construct(object $entity)
+  public function __construct(object $entity, array $entityAttributes)
   {
     $this->entity = $entity;
     $this->reflection = new ReflectionClass($this->entity);
     $this->tableName = $this->resolveTableName();
+    $this->metadata =  $this->getMetadata($entityAttributes);
   }
 
   /**
@@ -74,29 +78,18 @@ abstract class AbstractQuery implements QueryInterface
     return $this->reflection->getProperties();
   }
 
-  /**
-   * Builds a map of column names to their full SQL definitions (type + constraints).
-   *
-   * @return array<string, string> Column name → SQL definition
-   */
-  protected function getSqlColumns(): array
+  protected function getMetadata(array $entityAttributes): array
   {
-    $columns = [];
+    $metadata = [];
     foreach ($this->getEntityProperties() as $prop) {
-      $columns[$prop->getName()] = $this->getSqlColumnDefinition($prop);
+      foreach ($entityAttributes as $entityAttr) {
+        $attrValues = $prop->getAttributes($entityAttr);
+        if (!empty($attrValues)) {
+          $metadata[$entityAttr][$prop->getName()] = $attrValues[0]->newInstance();
+        }
+      }
     }
-    return $columns;
+    return $metadata;
   }
 
-  /**
-   * Generates the SQL definition string for a given property (type + constraints).
-   *
-   * @param ReflectionProperty $prop
-   * @return string SQL column definition (e.g., "VARCHAR(255) NOT NULL")
-   */
-  protected function getSqlColumnDefinition(ReflectionProperty $prop): string
-  {
-    $typeMapper = new TypeMapper($prop);
-    return $typeMapper->getSqlType() . ' ' . $typeMapper->getSqlConstraints();
-  }
 }

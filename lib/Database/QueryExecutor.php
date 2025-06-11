@@ -42,7 +42,7 @@ class QueryExecutor
    * @param array $params An associative array of query parameters.
    * @return int The number of affected rows.
    */
-  public function executeNonQuery(string $query, array $params = []): int
+  public function executeNonQuery(string $query, array $params = []): bool
   {
     $stm = $this->prepareStatement($query, $params);
     return $stm->execute();
@@ -70,6 +70,11 @@ class QueryExecutor
       };
     }
     return null;
+  }
+
+  public function executeRaw(string $sql): bool
+  {
+    return $this->database->exec($sql) !== false;
   }
 
   /**

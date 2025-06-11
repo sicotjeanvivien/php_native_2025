@@ -1,6 +1,6 @@
 <?php
 
-namespace AWSD\Schema\Mapper\Sgbd;
+namespace AWSD\Schema\Mapper\SGBD;
 
 use AWSD\Schema\Attribute\Type;
 use AWSD\Schema\Enum\EntityType;
@@ -11,7 +11,7 @@ use AWSD\Schema\Enum\EntityType;
  * Base class for SQL dialect-specific mappers (PostgreSQL, MySQL, SQLite).
  * Handles type and constraint formatting for a given entity field.
  */
-abstract class AbstractSgbdMapper implements SgbdMapperInterface
+abstract class AbstractSGBDMapper
 {
   /**
    * List of SQL functions that should not be quoted in DEFAULT clauses.
@@ -22,30 +22,6 @@ abstract class AbstractSgbdMapper implements SgbdMapperInterface
     'ON UPDATE CURRENT_TIMESTAMP',
     'CURRENT_TIMESTAMP'
   ];
-
-  /**
-   * The metadata extracted from the #[Type] attribute of the entity property.
-   *
-   * @var Type|null
-   */
-  protected readonly ?Type $metadata;
-
-  /**
-   * The logical type of the entity property, resolved as an EntityType.
-   *
-   * @var EntityType
-   */
-  protected readonly EntityType $typeSql;
-
-  /**
-   * @param Type|null    $metadata The #[Type] metadata for the property.
-   * @param EntityType   $typeSql  The resolved entity type (based on PHP type or attribute).
-   */
-  public function __construct(?Type $metadata, EntityType $typeSql)
-  {
-    $this->metadata = $metadata;
-    $this->typeSql = $typeSql;
-  }
 
   /**
    * Formats a DEFAULT value for inclusion in a SQL column definition.
