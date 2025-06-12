@@ -2,14 +2,23 @@
 
 namespace AWSD\Schema;
 
+use AWSD\Database\QueryExecutor;
 use AWSD\Schema\Query\CreateQuery;
 use AWSD\Schema\Query\IndexQuery;
+use AWSD\Schema\Query\SelectQuery;
 use AWSD\Schema\Query\TriggerQuery;
 
 class EntitySchemaBuilder
 {
 
-  public function __construct(private object $entity) {}
+  private object $entity;
+
+  private QueryExecutor $queryExecutor;
+
+  public function __construct(object $entity) {
+    $this->entity = $entity;
+    $this->queryExecutor = new QueryExecutor($entity);
+  }
 
   public function create(): string
   {
@@ -21,27 +30,17 @@ class EntitySchemaBuilder
     return implode("\n\n", $queries);
   }
 
-  public function select(): string
+  public function findAll(array $fields = [], array $where = []): array
   {
-    // TODO: Implement later
-    throw new \LogicException('Select not implemented yet.');
+    $selectQuery = new SelectQuery($this->entity);
+    $sql = $selectQuery->setFields($fields)->generateSql();
+    $params = $selectQuery->getParams();
+    return $this->queryExecutor->executeQuery($sql, $params);
   }
 
-  public function insert(): string
+  public function findBy()
   {
-    // TODO
-    throw new \LogicException('Insert not implemented yet.');
+    # code...
   }
 
-  public function update(): string
-  {
-    // TODO
-    throw new \LogicException('Update not implemented yet.');
-  }
-
-  public function delete(): string
-  {
-    // TODO
-    throw new \LogicException('Delete not implemented yet.');
-  }
 }

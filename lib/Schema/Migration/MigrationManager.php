@@ -38,7 +38,7 @@ class MigrationManager
    */
   public function __construct()
   {
-    $this->queryExecutor = new QueryExecutor();
+    $this->queryExecutor = new QueryExecutor(null);
   }
 
   public function generate(): void

@@ -22,14 +22,14 @@ class QueryExecutor
   /**
    * @var string The fully qualified class name of the entity associated with the repository.
    */
-  protected readonly string $entityClass;
+  protected readonly object $entityClass;
 
   /**
    * QueryExecutor constructor.
    *
    * Initializes the database connection.
    */
-  public function __construct(string $entityClass = '')
+  public function __construct(?object $entityClass)
   {
     $this->database = Database::getInstance();
     $this->entityClass = $entityClass;
