@@ -103,5 +103,3 @@ Projet personnel développé par **Jean-Vivien Sicot**.
 Ce projet est librement utilisable à des fins d’apprentissage. Licence à définir.
 
 ```
-
----
