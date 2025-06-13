@@ -2,10 +2,9 @@
 
 namespace AWSD\Schema\Query;
 
-use AWSD\Schema\Attribute\Type;
+use AWSD\Schema\Helper\StringHelper;
 use ReflectionClass;
 use ReflectionProperty;
-use AWSD\Schema\Mapper\TypeMapper;
 
 /**
  * AbstractQuery
@@ -65,7 +64,7 @@ abstract class AbstractQuery
       return strtolower(substr($name, 0, -1)) . 'ies';
     }
 
-    return strtolower($name) . 's';
+    return StringHelper::camelToSnake(strtolower($name) . 's');
   }
 
   /**

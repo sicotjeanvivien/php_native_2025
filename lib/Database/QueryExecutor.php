@@ -8,39 +8,50 @@ use PDOStatement;
 /**
  * Class QueryExecutor
  *
- * Provides methods to safely prepare and execute SQL queries using PDO,
- * with optional parameter binding and entity hydration.
+ * Provides safe and flexible execution of SQL queries using PDO,
+ * with full support for parameter binding and typed entity hydration.
+ *
+ * Responsibilities:
+ * - Centralize PDO query execution
+ * - Handle INSERT/UPDATE/DELETE via `executeNonQuery()`
+ * - Handle SELECT with optional entity hydration via `executeQuery()` and `fetchAllEntities()`
+ * - Perform automatic type casting for hydrated properties (e.g. DateTime, int)
+ *
+ * Typical usage:
+ * ```php
+ * $executor = new QueryExecutor(User::class);
+ * $user = $executor->executeQuery('SELECT * FROM users WHERE id = :id', [':id' => 1]);
+ * ```
  */
 class QueryExecutor
 {
-
   /**
-   * @var PDO The database connection instance.
+   * @var PDO The PDO connection to the current database.
    */
   protected PDO $database;
 
   /**
-   * @var string The fully qualified class name of the entity associated with the repository.
+   * @var string|null Fully-qualified class name of the associated entity, or null.
    */
-  protected readonly object $entityClass;
+  protected readonly ?string $entityClass;
 
   /**
-   * QueryExecutor constructor.
+   * Constructor
    *
-   * Initializes the database connection.
+   * @param string|null $entityClass Optional entity class name for hydration.
    */
-  public function __construct(?object $entityClass)
+  public function __construct(?string $entityClass)
   {
     $this->database = Database::getInstance();
     $this->entityClass = $entityClass;
   }
 
   /**
-   * Executes an INSERT, UPDATE, or DELETE SQL statement.
+   * Executes a non-SELECT SQL query (INSERT, UPDATE, DELETE).
    *
-   * @param string $query The SQL query to execute.
-   * @param array $params An associative array of query parameters.
-   * @return int The number of affected rows.
+   * @param string $query  The SQL statement to execute.
+   * @param array  $params The parameters to bind.
+   * @return bool True on success, false on failure.
    */
   public function executeNonQuery(string $query, array $params = []): bool
   {
@@ -49,40 +60,41 @@ class QueryExecutor
   }
 
   /**
-   * Executes a SQL query with optional parameters.
+   * Executes a SELECT query and hydrates results as entities (if configured).
    *
-   * @param string $query The SQL query to execute.
-   * @param array $params An associative array of query parameters.
-   * @return mixed The query result, either a single entity, an array of entities, or null.
+   * @param string $query  The SQL SELECT query.
+   * @param array  $params The parameters to bind.
+   * @return object|array<object>|null A single entity, a list of entities, or null.
    */
   public function executeQuery(string $query, array $params = []): mixed
   {
     $stm = $this->prepareStatement($query, $params);
+    $stm->setFetchMode(PDO::FETCH_ASSOC);
 
-    if ($stm->execute()) {
-      $fetchMode = $this->entityClass ? PDO::FETCH_CLASS : PDO::FETCH_ASSOC;
-      $stm->setFetchMode($fetchMode, $this->entityClass ?: null);
-
-      return match (true) {
-        $stm->rowCount() === 1 => $stm->fetch(),
-        $stm->rowCount() > 1   => $stm->fetchAll(),
+    return $stm->execute()
+      ? match (true) {
+        $stm->rowCount() === 1 => $this->hydrateWithCasting($stm->fetch()),
+        $stm->rowCount() > 1   => array_map([$this, 'hydrateWithCasting'], $stm->fetchAll()),
         default                => null
-      };
-    }
-    return null;
+      }
+      : null;
   }
 
+  /**
+   * Executes raw SQL (DDL, etc.) without parameters.
+   *
+   * @param string $sql Raw SQL statement.
+   * @return bool True on success, false otherwise.
+   */
   public function executeRaw(string $sql): bool
   {
     return $this->database->exec($sql) !== false;
   }
 
   /**
-   * Returns the ID of the last inserted row as a string.
+   * Returns the ID of the last inserted row.
    *
-   * This is typically used after INSERT queries to retrieve the auto-incremented primary key.
-   *
-   * @return string The last inserted ID (always returned as string by PDO).
+   * @return string The last insert ID.
    */
   public function lastInsertId(): string
   {
@@ -90,14 +102,14 @@ class QueryExecutor
   }
 
   /**
-   * Executes a SELECT query and returns a single column value.
+   * Executes a SELECT query and returns the value of a single column.
    *
-   * Useful for queries like SELECT COUNT(*) or scalar lookups.
+   * Useful for scalar lookups like COUNT(*), MAX(), etc.
    *
-   * @param string $query The SQL query to execute.
-   * @param array $params An associative array of query parameters.
-   * @param int $columnIndex The index of the column to fetch (default: 0).
-   * @return mixed The column value or false if no result.
+   * @param string $query The SQL query.
+   * @param array $params Parameters to bind.
+   * @param int $columnIndex Index of the column (default: 0).
+   * @return mixed The column value or null.
    */
   public function fetchColumn(string $query, array $params = [], int $columnIndex = 0): mixed
   {
@@ -106,27 +118,28 @@ class QueryExecutor
   }
 
   /**
-   * Executes a SELECT query and returns all values from a single column.
+   * Executes a SELECT query and returns an array of hydrated entities.
    *
-   * Useful for retrieving a list of scalar values like filenames, IDs, etc.
-   *
-   * @param string $query The SQL query to execute.
-   * @param array $params An associative array of query parameters.
-   * @param int $columnIndex The index of the column to fetch (default: 0).
-   * @return array The list of column values.
+   * @param string $query The SQL SELECT query.
+   * @param array $params Parameters to bind.
+   * @return array<object> List of hydrated entities.
    */
-  public function fetchAllColumn(string $query, array $params = [], int $columnIndex = 0): array
+  public function fetchAllEntities(string $query, array $params = []): array
   {
     $stm = $this->prepareStatement($query, $params);
-    return $stm->execute() ? $stm->fetchAll(PDO::FETCH_COLUMN, $columnIndex) : [];
+    $stm->setFetchMode(PDO::FETCH_ASSOC);
+
+    return $stm->execute()
+      ? array_map([$this, 'hydrateWithCasting'], $stm->fetchAll())
+      : [];
   }
 
   /**
-   * Prepares a PDOStatement with bound parameters.
+   * Prepares a PDOStatement and binds parameters with automatic type resolution.
    *
-   * @param string $query The SQL query.
-   * @param array $params The parameters to bind.
-   * @return \PDOStatement The prepared and bound statement.
+   * @param string $query  The SQL query.
+   * @param array  $params Parameters to bind (associative).
+   * @return PDOStatement Prepared PDO statement.
    */
   private function prepareStatement(string $query, array $params = []): PDOStatement
   {
@@ -136,11 +149,46 @@ class QueryExecutor
       $pdo_type = match (true) {
         $param_type === 'integer' => PDO::PARAM_INT,
         $param_type === 'boolean' => PDO::PARAM_BOOL,
-        $param_type === 'null' => PDO::PARAM_NULL,
-        $param_type === 'string' => PDO::PARAM_STR,
+        $param_type === 'null'    => PDO::PARAM_NULL,
+        default                   => PDO::PARAM_STR,
       };
       $stm->bindValue($key, $param, $pdo_type);
     }
     return $stm;
+  }
+
+  /**
+   * Hydrates a single entity from an associative array row,
+   * casting values to match the declared property types.
+   *
+   * @param array $rawRow The raw row from the database (associative).
+   * @return object The hydrated entity.
+   */
+  private function hydrateWithCasting(array $rawRow): object
+  {
+    $entity = new ($this->entityClass)();
+    $reflection = new \ReflectionClass($this->entityClass);
+
+    foreach ($rawRow as $field => $value) {
+      if (!$reflection->hasProperty($field)) {
+        continue;
+      }
+
+      $property = $reflection->getProperty($field);
+      $type = $property->getType()?->getName();
+
+      $converted = match ($type) {
+        \DateTime::class => new \DateTime($value),
+        'int'            => (int) $value,
+        'float'          => (float) $value,
+        'bool'           => (bool) $value,
+        default          => $value
+      };
+
+      $property->setAccessible(true);
+      $property->setValue($entity, $converted);
+    }
+
+    return $entity;
   }
 }

@@ -3,6 +3,7 @@
 namespace AWSD\Model;
 
 use AWSD\Database\QueryExecutor;
+use AWSD\Schema\Helper\StringHelper;
 
 /**
  * Class AbstractRepository
@@ -41,10 +42,10 @@ abstract class AbstractRepository
    */
   public function __construct()
   {
-    $this->queryExecutor = new QueryExecutor($this->entityClass);
-    if (!preg_match('/^[a-z_]+$/i', $this->table)) {
+    if (StringHelper::isNotSnakeCase($this->table)) {
       throw new \InvalidArgumentException("Invalid table name: {$this->table}");
     }
+    $this->queryExecutor = new QueryExecutor($this->entityClass);
     $this->fields = $this->getEntityFields();
   }
 

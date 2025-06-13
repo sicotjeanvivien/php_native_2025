@@ -30,7 +30,7 @@ abstract class AbstractEntity
    * Defaulted to CURRENT_TIMESTAMP by the database engine.
    */
   #[Type(type: EntityType::DATETIME, default: "CURRENT_TIMESTAMP")]
-  protected DateTime $createdAt;
+  protected DateTime $created_at;
 
   /**
    * Last update timestamp.
@@ -38,5 +38,5 @@ abstract class AbstractEntity
    */
   #[Type(type: EntityType::DATETIME, default: "CURRENT_TIMESTAMP")]
   #[Trigger(onUpdate: true)]
-  protected DateTime $updatedAt;
+  protected DateTime $updated_at;
 }

@@ -3,7 +3,7 @@
 namespace AWSD\Schema\Migration;
 
 use AWSD\Database\QueryExecutor;
-use AWSD\Model\Migration;
+use AWSD\Schema\Migration\Migration;
 use AWSD\Schema\EntitySchemaBuilder;
 use AWSD\Schema\Scanner\EntityScanner;
 use AWSD\Utils\Log;
@@ -12,16 +12,26 @@ use RuntimeException;
 /**
  * Class MigrationManager
  *
- * Handles execution of SQL migration scripts from a designated folder.
- * Automatically tracks which migrations have been applied using a `migrations` table.
+ * Manages the generation and execution of SQL migration scripts.
+ * 
+ * Responsibilities:
+ * - Scans entity classes and generates `CREATE TABLE` SQL files (`generate()`).
+ * - Applies new SQL migration files in `/migrations` directory (`migrate()`).
+ * - Tracks applied migrations in a `migrations` table.
  *
- * Expected file structure: each migration must be a `.sql` file inside `/migrations/`.
- * Each file is executed once and its filename is recorded in the migrations table.
+ * File format: each migration must be a `.sql` file named like:
+ *   `YYYYMMDD_HHMMSS_create_table_name.sql`
  *
  * Usage:
  *   $manager = new MigrationManager();
- *   $manager->migrate();
+ *   $manager->generate(); // Generates SQL from entities
+ *   $manager->migrate();  // Applies all new migrations
+ *
+ * Dependencies:
+ * - Entity classes must be located in `/src/Model`
+ * - Migration history is tracked in a table named `migrations`
  */
+
 class MigrationManager
 {
 
@@ -91,7 +101,9 @@ class MigrationManager
   {
     $this->createMigrationTable();
     $migrationsInFolder = array_filter(scandir(self::MIGRATION_PATH), fn($f) => str_ends_with($f, '.sql'));
-    $migrationExecuted = $this->queryExecutor->fetchAllColumn("SELECT filename FROM migrations;");
+    $entityBuilder = new EntitySchemaBuilder((new Migration()));
+    $migrationExecuted = $entityBuilder->findAll(["filename"]);
+
     return array_diff($migrationsInFolder, $migrationExecuted);
   }
 

@@ -37,9 +37,6 @@ final class TypeMapper extends AbstractMapper
    */
   private EntityType $typeSql;
 
-
-
-
   /**
    * @param ReflectionProperty $prop The property to analyze and map.
    */

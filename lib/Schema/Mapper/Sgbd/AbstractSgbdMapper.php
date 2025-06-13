@@ -2,8 +2,6 @@
 
 namespace AWSD\Schema\Mapper\SGBD;
 
-use AWSD\Schema\Attribute\Type;
-use AWSD\Schema\Enum\EntityType;
 
 /**
  * AbstractSgbdMapper

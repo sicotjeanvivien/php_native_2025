@@ -1,13 +1,37 @@
 #!/usr/bin/env php
 <?php
 
+/**
+ * Entry point for executing custom CLI commands for the application.
+ *
+ * This script acts as a mini CLI dispatcher. It maps textual commands
+ * (e.g., `migration:run`, `test:query`) to their corresponding Script classes.
+ *
+ * Usage:
+ *   php bin/console.php migration:run
+ *   php bin/console.php test:query
+ *
+ * Available commands:
+ * - migration:run       → runs all pending SQL migrations
+ * - migration:generate  → generates migration files from entity schemas
+ * - test:query          → test utility for running ad-hoc queries
+ *
+ * Each script class must implement an `execute()` method.
+ *
+ * @see \AWSD\Script\Migration\RunMigrationScript
+ * @see \AWSD\Script\Migration\GenerateMigrationScript
+ * @see \AWSD\Script\TestQueryScript
+ */
+
 require_once dirname(__DIR__) . '\lib\Script\AbstractScript.php';
 require_once dirname(__DIR__) . '\lib\Script\Migration\RunMigrationScript.php';
 require_once dirname(__DIR__) . '\lib\Script\Migration\GenerateMigrationScript.php';
+require_once dirname(__DIR__) . '\lib\Script\TestQueryScript.php';
 
 $routes = [
   'migration:run'      => \AWSD\Script\Migration\RunMigrationScript::class,
   'migration:generate' => \AWSD\Script\Migration\GenerateMigrationScript::class,
+  'test:query'         => \AWSD\Script\TestQueryScript::class
 ];
 
 $command = $argv[1] ?? null;

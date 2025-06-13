@@ -1,6 +1,6 @@
 <?php
 
-namespace AWSD\Model;
+namespace AWSD\Schema\Migration;
 
 use AWSD\Schema\Attribute\Type;
 use AWSD\Schema\Enum\EntityType;
@@ -16,7 +16,7 @@ class Migration
   private string $filename;
 
   #[Type(type: EntityType::DATETIME, nullable: false, default: 'CURRENT_TIMESTAMP')]
-  private DateTime $executedAt;
+  private DateTime $executed_at;
 
   public function getId(): int
   {
@@ -30,6 +30,6 @@ class Migration
 
   public function getExecutedAt(): DateTime
   {
-    return $this->executedAt;
+    return $this->executed_at;
   }
 }
