@@ -1,24 +1,24 @@
 <?php
 
+declare(strict_types=1);
+
 namespace AWSD\Schema\Mapper\Orchestrator;
 
 use ReflectionProperty;
 use AWSD\Schema\Attribute\Type;
-use AWSD\Schema\Enum\SqlDialect;
 use AWSD\Schema\Enum\EntityType;
-use AWSD\Schema\Mapper\AbstractMapper;
 use AWSD\Schema\Mapper\SGBD\MySQL\TypeMapper as MySQLTypeMapper;
 use AWSD\Schema\Mapper\SGBD\PostgreSQL\TypeMapper as PostgreSQLTypeMapper;
 use AWSD\Schema\Mapper\SGBD\SQLite\TypeMapper as SQLiteTypeMapper;
 
 /**
- * TypeMapper
+ * TypeOrchestrator
  *
  * Central component responsible for mapping a property (ReflectionProperty) of an entity
  * to a SQL type and constraint string based on the current SQL dialect (MySQL, PostgreSQL, SQLite).
  * Delegates formatting logic to dialect-specific mappers.
  */
-final class TypeMapper extends AbstractMapper
+final class TypeOrchestrator extends AbstractOrchestrator
 {
 
   protected ReflectionProperty $prop;

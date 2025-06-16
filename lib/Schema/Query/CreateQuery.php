@@ -4,7 +4,7 @@ namespace AWSD\Schema\Query;
 
 use AWSD\Schema\Attribute\Type;
 use AWSD\Schema\Helper\StringHelper;
-use AWSD\Schema\Mapper\Orchestrator\TypeMapper;
+use AWSD\Schema\Mapper\Orchestrator\TypeOrchestrator;
 use ReflectionProperty;
 
 /**
@@ -102,7 +102,7 @@ class CreateQuery extends AbstractQuery implements QueryInterface
   protected function getSqlColumnDefinition(ReflectionProperty $prop): string
   {
     $metadata = $this->metadata[Type::class][$prop->getName()] ?? null;
-    $typeMapper = new TypeMapper($prop, $metadata);
+    $typeMapper = new TypeOrchestrator($prop, $metadata);
     return $typeMapper->getSqlType() . ' ' . $typeMapper->getSqlConstraints();
   }
 }

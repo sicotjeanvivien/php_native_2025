@@ -57,7 +57,7 @@ final class WhereComponent extends AbstractQueryComponent
 
     return <<<SQL
             WHERE $where
-        SQL;
+            SQL;
   }
 
   /**

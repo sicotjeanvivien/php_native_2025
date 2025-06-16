@@ -1,6 +1,6 @@
 <?php
 
-namespace AWSD\Schema\Mapper\SGBD;
+namespace AWSD\Schema\Mapper\SGBD\interface;
 
 interface TriggerMapperInterface
 {

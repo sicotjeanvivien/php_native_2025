@@ -172,7 +172,9 @@ final class SelectQuery extends AbstractQuery implements QueryInterface
    */
   public function setOrderBy(array $orderBy): self
   {
-    $this->componentsSql["ORDER_BY"] = (new OrderByComponent($orderBy))->getQuery();
+    $orderByComponent = new OrderByComponent($orderBy);
+    $this->componentsSql["ORDER_BY"] = $orderByComponent->getQuery();
+    $this->params = array_merge($this->params, $orderByComponent->getParams());
     return $this;
   }
 

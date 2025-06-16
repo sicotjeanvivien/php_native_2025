@@ -4,7 +4,6 @@ namespace AWSD\Schema\Mapper\SGBD\SQLite;
 
 use AWSD\Schema\Enum\EntityType;
 use AWSD\Schema\Mapper\SGBD\AbstractTypeMapper;
-use AWSD\Schema\Mapper\SGBD\TypeMapperInterface;
 
 /**
  * SqliteMapper
@@ -13,7 +12,7 @@ use AWSD\Schema\Mapper\SGBD\TypeMapperInterface;
  * SQLite uses dynamic typing, so most types are mapped to TEXT, REAL, or INTEGER.
  * Handles the special case for 'INTEGER PRIMARY KEY AUTOINCREMENT'.
  */
-class TypeMapper extends AbstractTypeMapper implements TypeMapperInterface
+class TypeMapper extends AbstractTypeMapper
 {
   /**
    * Resolves the SQLite column type for the given logical entity type.

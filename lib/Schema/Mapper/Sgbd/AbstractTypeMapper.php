@@ -4,8 +4,9 @@ namespace AWSD\Schema\Mapper\SGBD;
 
 use AWSD\Schema\Attribute\Type;
 use AWSD\Schema\Enum\EntityType;
+use AWSD\Schema\Mapper\SGBD\Interface\TypeMapperInterface;
 
-abstract class AbstractTypeMapper extends AbstractSGBDMapper
+abstract class AbstractTypeMapper extends AbstractSGBDMapper implements TypeMapperInterface
 {
 
   /**

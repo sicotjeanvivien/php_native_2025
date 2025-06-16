@@ -1,8 +1,9 @@
 <?php
 
+declare(strict_types=1);
+
 namespace AWSD\Schema\Mapper\Orchestrator;
 
-use AWSD\Schema\Mapper\AbstractMapper;
 use AWSD\Schema\Mapper\SGBD\MySQL\TriggerMapper as MySQLTriggerMapper;
 use AWSD\Schema\Mapper\SGBD\PostgreSQL\TriggerMapper as PostgreSQLTriggerMapper;
 use AWSD\Schema\Mapper\SGBD\SQLite\TriggerMapper as SQLiteTriggerMapper;
@@ -30,7 +31,7 @@ use AWSD\Schema\Mapper\SGBD\SQLite\TriggerMapper as SQLiteTriggerMapper;
  *
  * @see \AWSD\Schema\Query\TriggerQuery
  */
-class TriggerOrchestrator extends AbstractMapper
+class TriggerOrchestrator extends AbstractOrchestrator
 {
   /**
    * Constructor
@@ -41,7 +42,6 @@ class TriggerOrchestrator extends AbstractMapper
   public function __construct()
   {
     parent::__construct();
-
     $this->sgbdMapper = $this->getSgbdImplementation([
       'pgsql'  => new PostgreSQLTriggerMapper(),
       'sqlite' => new SQLiteTriggerMapper(),

@@ -35,7 +35,7 @@ final class LimitComponent extends AbstractQueryComponent
     $placeholder = $this->generatePlaceholder('limit');
     $this->registerParam($placeholder, $this->limit);
     return <<<SQL
-      LIMIT $placeholder
+    LIMIT $placeholder
     SQL;
   }
 }

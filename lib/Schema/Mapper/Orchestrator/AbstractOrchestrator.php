@@ -1,10 +1,10 @@
 <?php
 
-namespace AWSD\Schema\Mapper;
+namespace AWSD\Schema\Mapper\Orchestrator;
 
 use AWSD\Schema\Enum\SqlDialect;
 
-abstract class AbstractMapper
+abstract class AbstractOrchestrator
 {
 
   /**

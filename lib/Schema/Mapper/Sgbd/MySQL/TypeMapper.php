@@ -4,7 +4,6 @@ namespace AWSD\Schema\Mapper\SGBD\MySQL;
 
 use AWSD\Schema\Enum\EntityType;
 use AWSD\Schema\Mapper\SGBD\AbstractTypeMapper;
-use AWSD\Schema\Mapper\SGBD\TypeMapperInterface;
 
 /**
  * MysqlMapper
@@ -13,7 +12,7 @@ use AWSD\Schema\Mapper\SGBD\TypeMapperInterface;
  * Supports common MySQL features such as AUTO_INCREMENT, TINYINT(1) for booleans,
  * and CURRENT_TIMESTAMP handling for DATETIME/TIMESTAMP columns.
  */
-class TypeMapper extends AbstractTypeMapper implements TypeMapperInterface
+class TypeMapper extends AbstractTypeMapper
 {
   /**
    * Resolves the MySQL type for the given EntityType.

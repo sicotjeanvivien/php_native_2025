@@ -4,7 +4,6 @@ namespace AWSD\Schema\Mapper\SGBD\PostgreSQL;
 
 use AWSD\Schema\Enum\EntityType;
 use AWSD\Schema\Mapper\SGBD\AbstractTypeMapper;
-use AWSD\Schema\Mapper\Sgbd\TypeMapperInterface;
 
 /**
  * PostgresMapper
@@ -12,7 +11,7 @@ use AWSD\Schema\Mapper\Sgbd\TypeMapperInterface;
  * Maps an entity field to PostgreSQL SQL types and constraints.
  * Handles serial auto-increment detection, jsonb types, and default timestamp behavior.
  */
-class TypeMapper extends AbstractTypeMapper implements TypeMapperInterface
+class TypeMapper extends AbstractTypeMapper
 {
   /**
    * Resolves the PostgreSQL column type from the entity field type.

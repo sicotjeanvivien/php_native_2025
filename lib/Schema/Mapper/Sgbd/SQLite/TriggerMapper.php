@@ -2,7 +2,7 @@
 
 namespace AWSD\Schema\Mapper\SGBD\SQLite;
 
-use AWSD\Schema\Mapper\SGBD\TriggerMapperInterface;
+use AWSD\Schema\Mapper\SGBD\interface\TriggerMapperInterface;
 
 /**
  * Class TriggerMapper (SQLite)
