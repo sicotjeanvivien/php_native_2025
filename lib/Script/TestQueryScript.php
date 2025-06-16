@@ -13,11 +13,12 @@ final class TestQueryScript extends AbstractScript
   public function run(): void
   {
     $entityBuilder = new EntitySchemaBuilder((new Migration()));
-    $array = $entityBuilder->findAll([]);
-    $queryExecutor =  new QueryExecutor(Migration::class);
-    $resp = $queryExecutor->executeQuery("SELECT * FROM migrations;");
-    var_dump($array);
-    var_dump($resp);
+    // $migrations = $entityBuilder->findAll([], ['id'=> 1]);
+    $migration = $entityBuilder->findOneBy();
+
+    var_dump($migration);
+    // $resp = $queryExecutor->executeQuery("SELECT * FROM migrations;");
+    // var_dump($resp);
     // $user = new UserEntity();
     // $selectQuery = new SelectQuery($user);
     // $selectQuery->setWhere([

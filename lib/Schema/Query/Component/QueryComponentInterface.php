@@ -1,33 +1,34 @@
 <?php
 
+declare(strict_types=1);
+
 namespace AWSD\Schema\Query\Component;
 
 /**
  * Interface QueryComponentInterface
  *
- * Represents a reusable and modular component of a SQL query (e.g., WHERE, JOIN, ORDER BY).
- * All components must implement a `build()` method that returns the SQL fragment
- * and any associated bound parameters.
+ * Defines the contract for SQL query components used in modular query generation.
+ * Each component must be able to return its SQL string and associated parameters for binding.
  *
- * Contract:
- * - The `build()` method must return an associative array with:
- *   - 'sql'   => string : the SQL clause (may be empty if not applicable)
- *   - 'params'=> array  : key-value pairs for PDO binding
- *
- * Example return structure:
- * ```php
- * [
- *   'sql' => 'WHERE age > :age',
- *   'params' => [':age' => 18]
- * ]
- * ```
+ * @package AWSD\Schema\Query\Component
  */
 interface QueryComponentInterface
 {
   /**
-   * Builds the SQL fragment for the component and returns it along with any bound parameters.
+   * Returns the SQL fragment represented by the component.
+   * 
+   * Example: "WHERE id = :id AND name IS NOT NULL"
    *
-   * @return array{sql: string, params: array<string, mixed>} The SQL fragment and its bind parameters.
+   * @return string The SQL query fragment to be included in the final query.
    */
-  public function build(): array;
+  public function getQuery(): string;
+
+  /**
+   * Returns the parameters to be bound to the query.
+   * 
+   * Example: [':id' => 42]
+   *
+   * @return array<string, mixed> An associative array of named parameters and their values.
+   */
+  public function getParams(): array;
 }

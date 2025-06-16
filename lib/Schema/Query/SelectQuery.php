@@ -5,13 +5,15 @@ namespace AWSD\Schema\Query;
 use AWSD\Schema\Query\Component\GroupByComponent;
 use AWSD\Schema\Query\Component\HavingComponent;
 use AWSD\Schema\Query\Component\JoinComponent;
+use AWSD\Schema\Query\Component\LimitComponent;
+use AWSD\Schema\Query\Component\OffsetComponent;
 use AWSD\Schema\Query\Component\OrderByComponent;
 use AWSD\Schema\Query\Component\WhereComponent;
 
 /**
  * Class SelectQuery
  *
- * Builds a parameterized SQL SELECT query based on an entity class and dynamic query components.
+ * getQuerys a parameterized SQL SELECT query based on an entity class and dynamic query components.
  *
  * Responsibilities:
  * - Supports dynamic selection of fields
@@ -29,8 +31,6 @@ use AWSD\Schema\Query\Component\WhereComponent;
  * $params = $query->getParams();
  * ```
  *
- * Note:
- * LIMIT and OFFSET currently use `OrderByComponent`, which may be temporary or subject to refactoring.
  *
  * @see AWSD\Schema\Query\Component\WhereComponent
  * @see AWSD\Schema\Query\AbstractQuery
@@ -81,7 +81,7 @@ final class SelectQuery extends AbstractQuery implements QueryInterface
   }
 
   /**
-   * Builds and returns the full SQL SELECT statement.
+   * getQuerys and returns the full SQL SELECT statement.
    *
    * @return string The complete SELECT SQL statement.
    */
@@ -91,7 +91,7 @@ final class SelectQuery extends AbstractQuery implements QueryInterface
   }
 
   /**
-   * Returns the list of bound parameters accumulated during build (typically from WHERE).
+   * Returns the list of bound parameters accumulated during getQuery (typically from WHERE).
    *
    * @return array The associative array of PDO parameters.
    */
@@ -121,7 +121,7 @@ final class SelectQuery extends AbstractQuery implements QueryInterface
    */
   public function setJoin(array $joins): self
   {
-    $this->componentsSql["JOIN"] = (new JoinComponent($joins))->build();
+    $this->componentsSql["JOIN"] = (new JoinComponent($joins))->getQuery();
     return $this;
   }
 
@@ -134,9 +134,9 @@ final class SelectQuery extends AbstractQuery implements QueryInterface
    */
   public function setWhere(array $conditions): self
   {
-    $where = (new WhereComponent($conditions))->build();
-    $this->componentsSql['WHERE'] = $where['sql'];
-    $this->params = array_merge($this->params, $where['params']);
+    $whereCompoent = new WhereComponent($conditions);
+    $this->componentsSql['WHERE'] = $whereCompoent->getQuery();
+    $this->params = array_merge($this->params, $whereCompoent->getParams());
     return $this;
   }
 
@@ -148,7 +148,7 @@ final class SelectQuery extends AbstractQuery implements QueryInterface
    */
   public function setGroupBy(array $groupBy): self
   {
-    $this->componentsSql["GROUP_BY"] = (new GroupByComponent($groupBy))->build();
+    $this->componentsSql["GROUP_BY"] = (new GroupByComponent($groupBy))->getQuery();
     return $this;
   }
 
@@ -160,7 +160,7 @@ final class SelectQuery extends AbstractQuery implements QueryInterface
    */
   public function setHaving(array $having): self
   {
-    $this->componentsSql["HAVING"] = (new HavingComponent($having))->build();
+    $this->componentsSql["HAVING"] = (new HavingComponent($having))->getQuery();
     return $this;
   }
 
@@ -172,33 +172,38 @@ final class SelectQuery extends AbstractQuery implements QueryInterface
    */
   public function setOrderBy(array $orderBy): self
   {
-    $this->componentsSql["ORDER_BY"] = (new OrderByComponent($orderBy))->build();
+    $this->componentsSql["ORDER_BY"] = (new OrderByComponent($orderBy))->getQuery();
     return $this;
   }
 
   /**
    * Adds a LIMIT clause to the query.
-   * Note: Uses OrderByComponent (may be refactored).
+   * Note: Uses LimitComponent (may be refactored).
    *
-   * @param array $limit Format: ['LIMIT' => 10]
+   * @param int $limit Format: 10
    * @return $this
    */
-  public function setLimit(array $limit): self
+  public function setLimit(int $limit): self
   {
-    $this->componentsSql["LIMIT"] = (new OrderByComponent($limit))->build();
+    $limitComponent = new LimitComponent($limit);
+    $this->componentsSql["LIMIT"] = $limitComponent->getQuery();
+    $this->params = array_merge($this->params, $limitComponent->getParams());
     return $this;
   }
 
   /**
    * Adds an OFFSET clause to the query.
-   * Note: Uses OrderByComponent (may be refactored).
+   * Note: Uses OffsetComponent (may be refactored).
    *
-   * @param array $offset Format: ['OFFSET' => 20]
+   * @param int $offset Format: ['OFFSET' => 20]
    * @return $this
    */
-  public function setOffset(array $offset): self
+  public function setOffset(int $offset): self
   {
-    $this->componentsSql["OFFSET"] = (new OrderByComponent($offset))->build();
+    $offsetComponent = new OffsetComponent($offset);
+
+    $this->componentsSql["OFFSET"] = $offsetComponent->getQuery();
+    $this->params = array_merge($this->params, $offsetComponent->getParams());
     return $this;
   }
 

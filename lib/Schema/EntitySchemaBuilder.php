@@ -88,9 +88,8 @@ class EntitySchemaBuilder
   public function findAll(array $fields = [], array $where = []): array
   {
     $selectQuery = new SelectQuery($this->entity);
-    $sql = $selectQuery->setFields($fields)->generateSql();
+    $sql = $selectQuery->setFields($fields)->setWhere($where)->generateSql();
     $params = $selectQuery->getParams();
-    var_dump($sql); // TODO: remove or replace with logger
     return $this->queryExecutor->fetchAllEntities($sql, $params);
   }
 
@@ -101,8 +100,11 @@ class EntitySchemaBuilder
    *
    * @return void
    */
-  public function findBy()
+  public function findOneBy(array $fields = [], array $where = []):?object
   {
-    // @todo: implement dynamic field/value filtering (e.g. WHERE email = ..., status = ...)
+    $selectQuery = new SelectQuery($this->entity);
+    $sql = $selectQuery->setFields($fields)->setWhere($where)->setLimit(1)->generateSql();
+    $params = $selectQuery->getParams();
+    return $this->queryExecutor->executeQuery($sql, $params);
   }
 }

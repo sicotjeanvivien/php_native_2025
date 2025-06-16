@@ -2,10 +2,10 @@
 
 namespace AWSD\Schema\Query\Component;
 
-final class OrderByComponent implements QueryComponentInterface
+final class OrderByComponent extends AbstractQueryComponent
 {
-   public function build(): array
-   {
-     return [];
-   }
+  public function getQuery(): string
+  {
+    return '';
+  }
 }

@@ -2,10 +2,10 @@
 
 namespace AWSD\Schema\Query\Component;
 
-final class JoinComponent implements QueryComponentInterface
+final class JoinComponent extends AbstractQueryComponent
 {
-   public function build(): array
-   {
-     return [];
-   }
+  public function getQuery(): string
+  {
+    return '';
+  }
 }

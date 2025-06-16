@@ -2,10 +2,10 @@
 
 namespace AWSD\Schema\Query\Component;
 
-final class GroupByComponent implements QueryComponentInterface
+final class GroupByComponent extends AbstractQueryComponent
 {
-   public function build(): array
-   {
-     return [];
-   }
+  public function getQuery(): string
+  {
+    return '';
+  }
 }
