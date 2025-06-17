@@ -13,13 +13,13 @@ use AWSD\Schema\Query\Component\WhereComponent;
 /**
  * Class SelectQuery
  *
- * getQuerys a parameterized SQL SELECT query based on an entity class and dynamic query components.
+ * Generates a parameterized SQL SELECT query based on an entity class and modular components.
  *
  * Responsibilities:
  * - Supports dynamic selection of fields
- * - Composes modular SQL clauses via components:
- *   - WHERE, JOIN, GROUP BY, HAVING, ORDER BY, LIMIT, OFFSET
- * - Accumulates and exposes bound parameters for safe PDO execution
+ * - Composes SQL clauses via components:
+ *   - JOIN, WHERE, GROUP BY, HAVING, ORDER BY, LIMIT, OFFSET
+ * - Accumulates bound parameters for safe PDO execution
  *
  * Example usage:
  * ```php
@@ -31,12 +31,13 @@ use AWSD\Schema\Query\Component\WhereComponent;
  * $params = $query->getParams();
  * ```
  *
- *
  * @see AWSD\Schema\Query\Component\WhereComponent
  * @see AWSD\Schema\Query\AbstractQuery
  */
 final class SelectQuery extends AbstractQuery implements QueryInterface
 {
+
+  private bool $isDistinct = false;
 
   /**
    * @var array<string, mixed> Parameters to be bound to the query (from WHERE clause and others).
@@ -87,7 +88,7 @@ final class SelectQuery extends AbstractQuery implements QueryInterface
    */
   public function generateSql(): string
   {
-    return $this->getQuery($this->getFields(), $this->getcomponentsSql());
+    return $this->getQuery($this->getFields(), $this->getComponentsSql());
   }
 
   /**
@@ -121,7 +122,9 @@ final class SelectQuery extends AbstractQuery implements QueryInterface
    */
   public function setJoin(array $joins): self
   {
-    $this->componentsSql["JOIN"] = (new JoinComponent($joins))->getQuery();
+    $joinComponent = new JoinComponent();
+    $joinComponent->add($joins);
+    $this->componentsSql["JOIN"] = $joinComponent->getQuery();
     return $this;
   }
 
@@ -148,7 +151,7 @@ final class SelectQuery extends AbstractQuery implements QueryInterface
    */
   public function setGroupBy(array $groupBy): self
   {
-    $this->componentsSql["GROUP_BY"] = (new GroupByComponent($groupBy))->getQuery();
+    $this->componentsSql["GROUP_BY"] = '';
     return $this;
   }
 
@@ -160,7 +163,7 @@ final class SelectQuery extends AbstractQuery implements QueryInterface
    */
   public function setHaving(array $having): self
   {
-    $this->componentsSql["HAVING"] = (new HavingComponent($having))->getQuery();
+    $this->componentsSql["HAVING"] = '';
     return $this;
   }
 
@@ -197,7 +200,7 @@ final class SelectQuery extends AbstractQuery implements QueryInterface
    * Adds an OFFSET clause to the query.
    * Note: Uses OffsetComponent (may be refactored).
    *
-   * @param int $offset Format: ['OFFSET' => 20]
+   * @param int $offset Format: 20
    * @return $this
    */
   public function setOffset(int $offset): self
@@ -208,6 +211,13 @@ final class SelectQuery extends AbstractQuery implements QueryInterface
     $this->params = array_merge($this->params, $offsetComponent->getParams());
     return $this;
   }
+
+  public function setDistinct(bool $dictinct = true): self
+  {
+    $this->isDistinct = $dictinct;
+    return $this;
+  }
+
 
   /**
    * Assembles the final SQL SELECT string from fields and all added components.
@@ -231,7 +241,8 @@ final class SelectQuery extends AbstractQuery implements QueryInterface
    */
   private function getFields(): string
   {
-    return  empty($this->fields) ? '*' : implode(', ', $this->fields);
+    $fieldList = empty($this->fields) ? '*' : implode(', ', $this->fields);
+    return $this->isDistinct ? "DISTINCT $fieldList" : $fieldList;
   }
 
   /**
@@ -239,7 +250,7 @@ final class SelectQuery extends AbstractQuery implements QueryInterface
    *
    * @return string The concatenated SQL suffix.
    */
-  private function getcomponentsSql(): string
+  private function getComponentsSql(): string
   {
     $componentsSqlFilter = array_filter($this->componentsSql, fn($v) => !empty($v));
     return implode(' ', array_filter($componentsSqlFilter));

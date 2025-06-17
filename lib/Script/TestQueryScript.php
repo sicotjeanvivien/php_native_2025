@@ -23,6 +23,14 @@ final class TestQueryScript extends AbstractScript
       'name' => 'ASC',
       'created_at' => ['direction' => 'DESC', 'nulls' => 'LAST']
     ]);
+    $selectQuery->setJoin(
+      [
+        'table' => 'post',
+        'on' => ['post.user_id', '=', 'users.id'],
+        'type' => 'LEFT JOIN'
+      ]
+    );
+    $selectQuery->setDistinct()->setFields(['id', 'name']);
 
     var_dump($selectQuery->generateSql());
     var_dump($selectQuery->getParams());

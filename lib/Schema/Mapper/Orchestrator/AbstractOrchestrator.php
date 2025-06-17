@@ -2,6 +2,7 @@
 
 namespace AWSD\Schema\Mapper\Orchestrator;
 
+use AWSD\Schema\Config\ORMConfig;
 use AWSD\Schema\Enum\SqlDialect;
 
 abstract class AbstractOrchestrator
@@ -23,7 +24,7 @@ abstract class AbstractOrchestrator
 
   public function __construct()
   {
-    $this->sqlDialect = SqlDialect::fromEnv($_ENV["DB_DRIVER"]);
+    $this->sqlDialect = ORMConfig::getInstance()->getDialect();
   }
 
   /**
