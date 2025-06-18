@@ -29,14 +29,14 @@ use AWSD\Schema\Enum\WhereOperator;
 final class WhereDefinition
 {
   /**
-   * @param string               $field    The name of the database column (e.g. 'id', 'email').
-   * @param WhereOperator        $operator The SQL operator as enum (e.g. EQUAL, IN, IS_NULL).
-   * @param string|array|null    $value    The associated value or values. Must match the operator requirements.
+   * @param string                   $field    The name of the database column (e.g. 'id', 'email').
+   * @param WhereOperator            $operator The SQL operator as enum (e.g. EQUAL, IN, IS_NULL).
+   * @param int|string|array|null    $value    The associated value or values. Must match the operator requirements.
    */
   public function __construct(
     public readonly string $field,
     public readonly WhereOperator $operator,
-    public readonly string|array|null $value
+    public readonly int|string|array|null $value
   ) {
     $this->validate();
   }

@@ -54,5 +54,10 @@ final class ORMConfig
     return $this->dialect;
   }
 
+  public static function reset(): void
+  {
+    self::$instance = null;
+  }
+
   // Future: add support for schema name, identifier quoting style, etc.
 }

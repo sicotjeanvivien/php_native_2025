@@ -123,7 +123,6 @@ final class WhereComponent extends AbstractQueryComponent
       $operator = strtoupper($raw['operator']);
       $value = $raw['value'] ?? null;
     }
-
     $whereOperator = WhereOperator::fromString($operator);
     return new WhereDefinition($field, $whereOperator, $value);
   }

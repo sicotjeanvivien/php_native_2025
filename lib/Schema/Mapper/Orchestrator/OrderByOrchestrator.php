@@ -73,7 +73,6 @@ final class OrderByOrchestrator extends AbstractOrchestrator
       'sqlite' => new SQLiteOrderByMapper(),
       'mysql'  => new MySQLOrderByMapper(),
     ]);
-
     $this->condition = $condition;
     $this->resolveCondition();
   }

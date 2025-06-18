@@ -16,11 +16,11 @@ use ReflectionProperty;
 abstract class AbstractQuery
 {
   /**
-   * The entity object to generate a query for.
+   * The entity class-string to generate a query for.
    *
-   * @var object
+   * @var class-string
    */
-  protected object $entity;
+  protected string $entity;
 
   /**
    * ReflectionClass used to analyze the entity's structure.
@@ -37,11 +37,11 @@ abstract class AbstractQuery
   protected string $tableName;
 
   protected array $metadata;
-
   /**
-   * @param object $entity The entity instance used as the source for query generation.
+   * @param class-string $entity          The FQCN of the entity (e.g. Post::class)
+   * @param array<string, mixed> $entityAttributes Optional entity metadata (table name, fields, etc.)
    */
-  public function __construct(object $entity, array $entityAttributes)
+  public function __construct(string $entity, array $entityAttributes)
   {
     $this->entity = $entity;
     $this->reflection = new ReflectionClass($this->entity);
@@ -90,5 +90,4 @@ abstract class AbstractQuery
     }
     return $metadata;
   }
-
 }

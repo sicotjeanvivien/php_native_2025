@@ -30,7 +30,6 @@ use AWSD\Schema\Query\definition\OrderByDefinition;
 final class OrderByComponent extends AbstractQueryComponent
 {
 
-
   /** @var OrderByDefinition[] */
   private array $orders = [];
 

@@ -1,7 +1,7 @@
 <?php
 
 use PHPUnit\Framework\TestCase;
-use AWSD\Autoloader;
+use AWSD\Utils\Autoloader;
 use AWSD\Exception\AutoloadException;
 
 class AutoloaderTest extends TestCase

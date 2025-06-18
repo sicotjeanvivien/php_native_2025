@@ -65,7 +65,7 @@ final class SelectQuery extends AbstractQuery implements QueryInterface
    *
    * @param object $entity The entity instance to select from.
    */
-  public function __construct(object $entity)
+  public function __construct(string $entity)
   {
     parent::__construct($entity, []);
     $this->fields =  [];
@@ -123,7 +123,9 @@ final class SelectQuery extends AbstractQuery implements QueryInterface
   public function setJoin(array $joins): self
   {
     $joinComponent = new JoinComponent();
-    $joinComponent->add($joins);
+    foreach ($joins as $key => $join) {
+      $joinComponent->add($join);
+    }
     $this->componentsSql["JOIN"] = $joinComponent->getQuery();
     return $this;
   }

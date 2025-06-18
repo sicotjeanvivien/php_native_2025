@@ -40,7 +40,7 @@ class CreateQuery extends AbstractQuery implements QueryInterface
    *
    * @param object $entity The entity instance (e.g. new User()).
    */
-  public function __construct(object $entity)
+  public function __construct(string $entity)
   {
     parent::__construct($entity, [Type::class]);
   }

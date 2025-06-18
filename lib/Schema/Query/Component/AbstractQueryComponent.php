@@ -47,7 +47,7 @@ abstract class AbstractQueryComponent implements QueryComponentInterface
    * @param int $suffix An optional suffix to avoid name collisions.
    * @return string A parameter placeholder (e.g., ":email_2").
    */
-  protected function generatePlaceholder(string $field, int $suffix = 0): string
+  protected function generatePlaceholder(string $field, int $suffix = 1): string
   {
     $placeholder = ':' . $field . ($suffix ? "_$suffix" : '');
     if (array_key_exists($placeholder, $this->params)) {

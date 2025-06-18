@@ -13,7 +13,7 @@ final class TestQueryScript extends AbstractScript
   public function run(): void
   {
     $user = new UserEntity();
-    $selectQuery = new SelectQuery($user);
+    $selectQuery = new SelectQuery(UserEntity::class);
     $selectQuery->setWhere([
       'email' => ['operator' => 'like', 'value' => '%john%'],
       'created_at' => ['operator' => 'between', 'value' => ['2024-01-01', '2024-12-31']]
@@ -25,8 +25,8 @@ final class TestQueryScript extends AbstractScript
     ]);
     $selectQuery->setJoin(
       [
-        'table' => 'post',
-        'on' => ['post.user_id', '=', 'users.id'],
+        'table' => 'posts',
+        'on' => ['posts.user_id', '=', 'user.id'],
         'type' => 'LEFT JOIN'
       ]
     );
