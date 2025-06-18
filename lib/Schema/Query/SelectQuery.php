@@ -137,9 +137,10 @@ final class SelectQuery extends AbstractQuery implements QueryInterface
    */
   public function setWhere(array $conditions): self
   {
-    $whereCompoent = new WhereComponent($conditions);
-    $this->componentsSql['WHERE'] = $whereCompoent->getQuery();
-    $this->params = array_merge($this->params, $whereCompoent->getParams());
+    $whereComponent = new WhereComponent();
+    $whereComponent->addMany($conditions);
+    $this->componentsSql['WHERE'] = $whereComponent->getQuery();
+    $this->params = array_merge($this->params, $whereComponent->getParams());
     return $this;
   }
 
