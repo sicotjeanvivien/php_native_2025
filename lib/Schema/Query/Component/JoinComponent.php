@@ -44,9 +44,7 @@ final class JoinComponent extends AbstractQueryComponent
   public function add(array $definition): void
   {
     $this->validateDefinition($definition);
-    $join = $this->createJoinDefinition($definition);
-    $join->validate();
-    $this->joins[] = $join;
+    $this->joins[] = $this->createJoinDefinition($definition);
   }
 
   /**

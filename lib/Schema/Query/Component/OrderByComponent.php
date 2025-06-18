@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace AWSD\Schema\Query\Component;
 
 use AWSD\Schema\Mapper\Orchestrator\OrderByOrchestrator;
+use AWSD\Schema\Query\definition\OrderByDefinition;
 
 /**
  * Class OrderByComponent
@@ -28,22 +29,51 @@ use AWSD\Schema\Mapper\Orchestrator\OrderByOrchestrator;
  */
 final class OrderByComponent extends AbstractQueryComponent
 {
-  /**
-   * @var array<string, string|array{direction?: string, nulls?: string}>
-   *      Associative array of order instructions. Keys are column names.
-   */
-  private array $orders;
+
+
+  /** @var OrderByDefinition[] */
+  private array $orders = [];
+
+  public function add(string $field, string|array|null $definition = null): void
+  {
+    $direction = 'ASC';
+    $nulls = null;
+
+    if (is_string($definition)) {
+      $direction = $definition;
+    } elseif (is_array($definition)) {
+      $direction = $definition['direction'] ?? 'ASC';
+      $nulls = $definition['nulls'] ?? null;
+    }
+
+    $this->orders[] = new OrderByDefinition($field, $direction, $nulls);
+  }
 
   /**
-   * Constructor
+   * Adds multiple ORDER BY clauses in batch.
+   *
+   * Accepts an associative array where keys are field names and values are either:
+   * - a string: the direction (e.g., 'ASC' or 'DESC')
+   * - an array: with keys 'direction' and/or 'nulls'
+   *
+   * Examples:
+   * ```php
+   * $component->addMany([
+   *   'name' => 'ASC',
+   *   'created_at' => ['direction' => 'DESC', 'nulls' => 'LAST']
+   * ]);
+   * ```
    *
    * @param array<string, string|array{direction?: string, nulls?: string}> $orders
-   *        An associative array describing ORDER BY rules.
+   * @return void
    */
-  public function __construct(array $orders)
+  public function addMany(array $orders): void
   {
-    $this->orders = $orders;
+    foreach ($orders as $field => $definition) {
+      $this->add($field, $definition);
+    }
   }
+
 
   /**
    * Generates the full SQL ORDER BY clause.
@@ -71,9 +101,11 @@ final class OrderByComponent extends AbstractQueryComponent
   {
     $clauses = [];
 
-    foreach ($this->orders as $field => $order) {
-      foreach (OrderByOrchestrator::format($order) as $fragment) {
-        $clauses[] = "$field $fragment";
+    foreach ($this->orders as $orderDef) {
+      foreach (
+        OrderByOrchestrator::format($orderDef) as $fragment
+      ) {
+        $clauses[] = "{$orderDef->field} $fragment";
       }
     }
 

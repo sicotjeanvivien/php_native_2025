@@ -6,52 +6,66 @@ namespace AWSD\Schema\Mapper\SGBD\MySQL;
 
 use AWSD\Schema\Mapper\SGBD\AbstractOrderByMapper;
 use AWSD\Schema\Mapper\SGBD\interface\OrderByMapperInterface;
+use AWSD\Schema\Query\definition\OrderByDefinition;
 
 /**
  * Class OrderByMapper (MySQL)
  *
- * Builds SQL ORDER BY fragments compatible with MySQL syntax.
- * Emulates PostgreSQL's NULLS FIRST / LAST using IS NULL tricks.
+ * Formats ORDER BY clause fragments in MySQL-compatible syntax.
+ * Since MySQL does not natively support `NULLS FIRST` or `NULLS LAST`,
+ * this mapper emulates the behavior using `IS NULL` sorting tricks.
+ *
+ * ---
+ * Emulation strategy:
+ * - `NULLS FIRST` ⇒ `IS NULL DESC`
+ * - `NULLS LAST`  ⇒ `IS NULL ASC`
+ * Combined with the standard direction clause: `field ASC|DESC`
+ *
+ * ---
+ * Example output:
+ * ```sql
+ * ORDER BY created_at IS NULL DESC, created_at DESC
+ * ```
  *
  * @package AWSD\Schema\Mapper\SGBD\MySQL
  */
 final class OrderByMapper extends AbstractOrderByMapper implements OrderByMapperInterface
 {
   /**
-   * Builds the ORDER BY clause fragments.
-   * Uses "field IS NULL ASC|DESC" + "field ASC|DESC".
+   * Builds the ORDER BY clause fragments for MySQL.
    *
-   * @param string $direction Either "ASC" or "DESC"
-   * @param string|null $nulls Either "FIRST", "LAST", or null
-   * @return array<int, string> List of ORDER BY fragments
-   * @throws \RuntimeException If direction or nulls are invalid
+   * If a nulls placement is specified (`FIRST` or `LAST`),
+   * it prepends a clause like `field IS NULL ASC|DESC` to emulate PostgreSQL behavior.
+   * Then appends the classic `field ASC|DESC` direction.
+   *
+   * @param OrderByDefinition $order The normalized ORDER BY clause definition.
+   * @return array<int, string> List of SQL fragments to be concatenated.
    */
-  public function buildClause(string $direction, ?string $nulls = null): array
+  public function buildClause(OrderByDefinition $order): array
   {
     $fragments = [];
 
-    if ($nulls !== null) {
-      $fragments[] = $this->buildNulls($nulls);
+    if ($order->nulls !== null) {
+      $fragments[] = $this->buildNulls($order->nulls);
     }
 
-    $fragments[] = $this->buildDirection($direction);
+    $fragments[] = $this->buildDirection($order->direction);
 
     return $fragments;
   }
 
   /**
-   * Emulates NULLS FIRST / LAST using IS NULL ordering.
+   * Emulates PostgreSQL-style NULLS placement in MySQL.
    *
-   * @param string $nulls Either "FIRST" or "LAST"
-   * @return string SQL fragment like "IS NULL ASC"
-   * @throws \RuntimeException If nulls value is invalid
+   * MySQL does not support `NULLS FIRST/LAST`, so we sort explicitly on `IS NULL`:
+   * - `NULLS FIRST` → rows where `field IS NULL` appear first (IS NULL DESC)
+   * - `NULLS LAST`  → rows where `field IS NULL` appear last (IS NULL ASC)
+   *
+   * @param string $nulls The NULLS placement keyword: "FIRST" or "LAST"
+   * @return string SQL fragment like `IS NULL ASC`
    */
   public function buildNulls(string $nulls): string
   {
-    if ($this->isNullsInvalid($nulls)) {
-      throw new \RuntimeException("Invalid NULLS ordering keyword: '$nulls'");
-    }
-
     return match ($nulls) {
       'FIRST' => 'IS NULL DESC',
       'LAST'  => 'IS NULL ASC',

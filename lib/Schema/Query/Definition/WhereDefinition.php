@@ -9,13 +9,19 @@ use AWSD\Schema\Enum\WhereOperator;
 /**
  * Class WhereDefinition
  *
- * Represents a single SQL WHERE condition in normalized and type-safe form.
- * Ensures that the operator and its value are compatible at runtime.
+ * Represents a normalized and strictly typed SQL WHERE condition.
+ * This class encapsulates the target field, the SQL operator (as enum),
+ * and the corresponding value(s), with built-in validation logic.
  *
- * Example:
+ * 🔐 Ensures SQL-type safety and semantic correctness for each operator.
+ * 🔄 Delegates semantic rules (scalar, array, null) to the enum.
+ *
+ * ---
+ * Examples:
  * ```php
- * $def = new WhereDefinition('email', WhereOperator::LIKE, '%@gmail.com');
- * $def->validate(); // throws if invalid
+ * new WhereDefinition('email', WhereOperator::LIKE, '%@gmail.com');
+ * new WhereDefinition('id', WhereOperator::IN, [1, 2, 3]);
+ * new WhereDefinition('deleted_at', WhereOperator::IS_NULL, null);
  * ```
  *
  * @package AWSD\Schema\Query\definition
@@ -23,41 +29,45 @@ use AWSD\Schema\Enum\WhereOperator;
 final class WhereDefinition
 {
   /**
-   * @param string               $field    The name of the column (e.g. 'email').
-   * @param WhereOperator        $operator The SQL operator (enum).
-   * @param string|array|null    $value    The associated value(s), depending on operator.
+   * @param string               $field    The name of the database column (e.g. 'id', 'email').
+   * @param WhereOperator        $operator The SQL operator as enum (e.g. EQUAL, IN, IS_NULL).
+   * @param string|array|null    $value    The associated value or values. Must match the operator requirements.
    */
   public function __construct(
     public readonly string $field,
     public readonly WhereOperator $operator,
     public readonly string|array|null $value
-  ) {}
+  ) {
+    $this->validate();
+  }
 
   /**
-   * Validates the compatibility between the operator and the provided value.
+   * Validates that the value matches the semantic rules for the given operator.
    *
-   * @throws \InvalidArgumentException If the value is invalid for the given operator.
+   * Rules enforced:
+   * - IS NULL / IS NOT NULL: value must be null
+   * - IN / NOT IN: non-empty array of scalar values
+   * - BETWEEN: array with exactly two scalar values
+   * - LIKE / NOT LIKE: scalar string
+   * - Others: scalar (int, float, string, bool)
+   *
+   * @throws \InvalidArgumentException If the value is invalid for the operator.
    */
   public function validate(): void
   {
-    match ($this->operator) {
-      WhereOperator::IN,
-      WhereOperator::NOT_IN        => $this->assertArrayOfScalars(),
-
-      WhereOperator::BETWEEN       => $this->assertRangeArray(),
-
-      WhereOperator::LIKE,
-      WhereOperator::NOT_LIKE      => $this->assertScalarString(),
-
-      WhereOperator::IS_NULL,
-      WhereOperator::IS_NOT_NULL   => $this->assertNullValue(),
-
-      default                      => $this->assertScalar(),
+    match (true) {
+      $this->operator->requiresArray()      => $this->assertArrayOfScalars(),
+      $this->operator->isBetween()          => $this->assertRangeArray(),
+      $this->operator->requiresString()     => $this->assertScalarString(),
+      $this->operator->isUnary()            => $this->assertNullValue(),
+      default                               => $this->assertScalar(),
     };
   }
 
   /**
    * Ensures the value is a non-empty array of scalars (for IN, NOT IN).
+   *
+   * @throws \InvalidArgumentException
    */
   private function assertArrayOfScalars(): void
   {
@@ -74,6 +84,8 @@ final class WhereDefinition
 
   /**
    * Ensures the value is an array with exactly two scalar elements (for BETWEEN).
+   *
+   * @throws \InvalidArgumentException
    */
   private function assertRangeArray(): void
   {
@@ -90,6 +102,8 @@ final class WhereDefinition
 
   /**
    * Ensures the value is a scalar (for =, >, <, etc.).
+   *
+   * @throws \InvalidArgumentException
    */
   private function assertScalar(): void
   {
@@ -100,6 +114,8 @@ final class WhereDefinition
 
   /**
    * Ensures the value is a string (for LIKE, NOT LIKE).
+   *
+   * @throws \InvalidArgumentException
    */
   private function assertScalarString(): void
   {
@@ -110,6 +126,8 @@ final class WhereDefinition
 
   /**
    * Ensures the value is null (for IS NULL, IS NOT NULL).
+   *
+   * @throws \InvalidArgumentException
    */
   private function assertNullValue(): void
   {

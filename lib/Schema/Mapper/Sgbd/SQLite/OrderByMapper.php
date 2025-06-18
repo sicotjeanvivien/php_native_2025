@@ -6,40 +6,57 @@ namespace AWSD\Schema\Mapper\SGBD\SQLite;
 
 use AWSD\Schema\Mapper\SGBD\AbstractOrderByMapper;
 use AWSD\Schema\Mapper\SGBD\interface\OrderByMapperInterface;
+use AWSD\Schema\Query\definition\OrderByDefinition;
 
 /**
  * Class OrderByMapper (SQLite)
  *
- * Builds SQL ORDER BY fragments compatible with SQLite.
- * Ignores NULLS FIRST/LAST modifiers since SQLite does not support them explicitly.
+ * Formats ORDER BY clause fragments for SQLite-compatible SQL syntax.
+ * Since SQLite does not support `NULLS FIRST` or `NULLS LAST` explicitly,
+ * this mapper silently ignores the nulls directive or emits a warning (optional).
+ *
+ * ---
+ * Behavior:
+ * - `ORDER BY field ASC|DESC` is always honored
+ * - `NULLS FIRST/LAST` are ignored but optionally warned
+ *
+ * ---
+ * Example output:
+ * ```sql
+ * ORDER BY created_at DESC
+ * ```
  *
  * @package AWSD\Schema\Mapper\SGBD\SQLite
  */
 final class OrderByMapper extends AbstractOrderByMapper implements OrderByMapperInterface
 {
   /**
-   * Emits a warning if NULLS modifier is used (SQLite ignores them).
+   * Whether to emit a warning when a NULLS modifier is ignored.
    */
   public const WARN_UNSUPPORTED_NULLS = true;
 
   /**
-   * Builds the ORDER BY clause for SQLite.
-   * Ignores NULLS modifier since SQLite handles NULLs implicitly.
+   * Builds the ORDER BY clause fragment for SQLite.
    *
-   * @param string $direction Either "ASC" or "DESC".
-   * @param string|null $nulls Ignored for SQLite.
-   * @return array<int, string>
+   * Ignores the `nulls` directive entirely since SQLite does not support
+   * `NULLS FIRST/LAST`. Only the direction is retained.
+   *
+   * @param OrderByDefinition $order The ORDER BY clause definition.
+   * @return array<int, string> SQL fragment like ["DESC"]
    */
-  public function buildClause(string $direction, ?string $nulls = null): array
+  public function buildClause(OrderByDefinition $order): array
   {
-    return [$this->buildDirection($direction)];
+    return [$this->buildDirection($order->direction)];
   }
 
   /**
-   * Emits a warning if a NULLS modifier is requested.
+   * Emits a warning (optional) and ignores the NULLS clause.
    *
-   * @param string $nulls Either "FIRST" or "LAST".
-   * @return string Always returns empty string.
+   * This method is present to maintain a consistent interface,
+   * but always returns an empty string under SQLite.
+   *
+   * @param string $nulls The NULLS directive ("FIRST" or "LAST")
+   * @return string Always an empty string for SQLite
    */
   public function buildNulls(string $nulls): string
   {

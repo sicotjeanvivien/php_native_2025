@@ -65,4 +65,65 @@ enum WhereOperator: string
 
     throw new \InvalidArgumentException("Unsupported SQL operator: '$raw'.");
   }
+
+  /**
+   * Returns true if the operator does not require a value (e.g. IS NULL).
+   */
+  public function isUnary(): bool
+  {
+    return match ($this) {
+      self::IS_NULL,
+      self::IS_NOT_NULL => true,
+      default => false,
+    };
+  }
+
+  /**
+   * Returns true if the operator requires a single scalar value.
+   */
+  public function requiresScalar(): bool
+  {
+    return match ($this) {
+      self::EQUAL,
+      self::NOT_EQUAL,
+      self::NOT_EQUAL_ALT,
+      self::LESS_THAN,
+      self::LESS_THAN_EQUAL,
+      self::GREATER_THAN,
+      self::GREATER_EQUAL => true,
+      default => false,
+    };
+  }
+
+  /**
+   * Returns true if the operator requires a string (LIKE, NOT LIKE).
+   */
+  public function requiresString(): bool
+  {
+    return match ($this) {
+      self::LIKE,
+      self::NOT_LIKE => true,
+      default => false,
+    };
+  }
+
+  /**
+   * Returns true if the operator requires an array of values (e.g. IN, NOT IN).
+   */
+  public function requiresArray(): bool
+  {
+    return match ($this) {
+      self::IN,
+      self::NOT_IN => true,
+      default => false,
+    };
+  }
+
+  /**
+   * Returns true if the operator is a BETWEEN operator.
+   */
+  public function isBetween(): bool
+  {
+    return $this === self::BETWEEN;
+  }
 }

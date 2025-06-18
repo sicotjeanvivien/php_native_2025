@@ -6,12 +6,20 @@ namespace AWSD\Schema\Mapper\SGBD\PostgreSQL;
 
 use AWSD\Schema\Mapper\SGBD\AbstractOrderByMapper;
 use AWSD\Schema\Mapper\SGBD\interface\OrderByMapperInterface;
+use AWSD\Schema\Query\definition\OrderByDefinition;
 
 /**
  * Class OrderByMapper (PostgreSQL)
  *
- * Builds SQL ORDER BY fragments compatible with PostgreSQL syntax,
- * including native support for NULLS FIRST / NULLS LAST.
+ * Formats ORDER BY clause fragments using PostgreSQL’s native syntax.
+ * PostgreSQL supports advanced ordering behavior with `NULLS FIRST` and `NULLS LAST`,
+ * which this mapper handles natively and cleanly.
+ *
+ * ---
+ * Example output:
+ * ```sql
+ * ORDER BY created_at DESC NULLS LAST
+ * ```
  *
  * @package AWSD\Schema\Mapper\SGBD\PostgreSQL
  */
@@ -20,35 +28,35 @@ final class OrderByMapper extends AbstractOrderByMapper implements OrderByMapper
   /**
    * Builds the ORDER BY clause fragments for PostgreSQL.
    *
-   * @param string $direction Either "ASC" or "DESC".
-   * @param string|null $nulls Either "FIRST", "LAST", or null.
-   * @return array<int, string> One-element array like ["DESC NULLS LAST"]
-   * @throws \RuntimeException If direction or nulls value is invalid.
+   * Returns a one-element array containing the full fragment, e.g.:
+   * ["DESC NULLS LAST"]
+   *
+   * @param OrderByDefinition $order The normalized ORDER BY clause.
+   * @return array<int, string> SQL ORDER fragment array.
    */
-  public function buildClause(string $direction, ?string $nulls = null): array
+  public function buildClause(OrderByDefinition $order): array
   {
-    $sql = $this->buildDirection($direction);
+    $sql = $this->buildDirection($order->direction);
 
-    if ($nulls !== null) {
-      $sql .= $this->buildNulls($nulls);
+    if ($order->nulls !== null) {
+      $sql .= $this->buildNulls($order->nulls);
     }
 
     return [$sql];
   }
 
   /**
-   * Returns the PostgreSQL-specific NULLS ordering clause.
+   * Formats the NULLS placement keyword for PostgreSQL.
    *
-   * @param string $nulls Either "FIRST" or "LAST".
-   * @return string The SQL NULLS modifier.
-   * @throws \RuntimeException If the NULLS modifier is invalid.
+   * PostgreSQL supports explicit nulls ordering via:
+   * - `NULLS FIRST`
+   * - `NULLS LAST`
+   *
+   * @param string $nulls The nulls modifier: "FIRST" or "LAST"
+   * @return string SQL fragment like " NULLS FIRST"
    */
   public function buildNulls(string $nulls): string
   {
-    if ($this->isNullsInvalid($nulls)) {
-      throw new \RuntimeException("Invalid NULLS ordering keyword: '$nulls'");
-    }
-
     return ' NULLS ' . $nulls;
   }
 }

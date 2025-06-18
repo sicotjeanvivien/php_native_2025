@@ -7,81 +7,93 @@ namespace AWSD\Schema\Mapper\Orchestrator;
 use AWSD\Schema\Mapper\SGBD\MySQL\OrderByMapper as MySQLOrderByMapper;
 use AWSD\Schema\Mapper\SGBD\PostgreSQL\OrderByMapper as PostgreSQLOrderByMapper;
 use AWSD\Schema\Mapper\SGBD\SQLite\OrderByMapper as SQLiteOrderByMapper;
+use AWSD\Schema\Query\definition\OrderByDefinition;
 
 /**
  * Class OrderByOrchestrator
  *
- * Delegates ORDER BY clause formatting to the appropriate SQL dialect mapper.
- * Supports advanced PostgreSQL features such as NULLS FIRST/LAST, and provides fallback
- * for MySQL and SQLite where native support is absent or implicit.
+ * Delegates the construction of an ORDER BY clause fragment to the appropriate
+ * SQL dialect-specific mapper (PostgreSQL, MySQL, SQLite).
  *
- * Input can be:
- * - A string direction: "ASC" or "DESC"
- * - A structured array: ['direction' => 'DESC', 'nulls' => 'LAST']
+ * This orchestrator receives a fully validated `OrderByDefinition` object and
+ * extracts its normalized `direction` and `nulls` placement.
+ * It then delegates the formatting to the appropriate `OrderByMapper` for the current SGBD.
  *
+ * ---
+ * Supported features:
+ * - PostgreSQL: full support for `NULLS FIRST` / `NULLS LAST`
+ * - MySQL & SQLite: fallback emulation or omission of null handling
+ *
+ * ---
  * Example usage:
- *   OrderByOrchestrator::format('ASC')                       => "ASC"
- *   OrderByOrchestrator::format(['direction' => 'DESC'])     => "DESC"
- *   OrderByOrchestrator::format(['direction' => 'ASC', 'nulls' => 'FIRST']) => "ASC NULLS FIRST"
+ * ```php
+ * $order = new OrderByDefinition('created_at', 'DESC', 'LAST');
+ * $sql = OrderByOrchestrator::format($order); // ["DESC NULLS LAST"]
+ * ```
  *
  * @package AWSD\Schema\Mapper\Orchestrator
  */
 final class OrderByOrchestrator extends AbstractOrchestrator
 {
   /**
-   * @var string|array<string, string|null> The original ORDER BY condition input.
+   * The ORDER BY clause definition (field, direction, nulls).
+   *
+   * @var OrderByDefinition
    */
-  private string|array $condition;
+  private OrderByDefinition $condition;
 
   /**
-   * @var string The normalized direction (ASC or DESC).
+   * The normalized direction (ASC or DESC).
+   *
+   * @var string
    */
   private string $direction;
 
   /**
-   * @var string|null Optional NULLS placement (FIRST or LAST).
+   * The normalized NULLS placement ("FIRST", "LAST", or null).
+   *
+   * @var string|null
    */
   private ?string $nulls;
 
   /**
    * Constructor
    *
-   * Initializes the orchestrator with the correct OrderByMapper
-   * based on the current database driver (`$_ENV['DB_DRIVER']`).
+   * Instantiates the correct `OrderByMapper` based on the configured SQL dialect,
+   * and extracts normalized direction and nulls info from the given condition.
    *
-   * @param string|array<string, string|null> $condition
+   * @param OrderByDefinition $condition A validated ORDER BY clause input.
    */
-  public function __construct(string|array $condition)
+  public function __construct(OrderByDefinition $condition)
   {
     parent::__construct();
+
     $this->sgbdMapper = $this->getSgbdImplementation([
       'pgsql'  => new PostgreSQLOrderByMapper(),
       'sqlite' => new SQLiteOrderByMapper(),
       'mysql'  => new MySQLOrderByMapper(),
     ]);
+
     $this->condition = $condition;
     $this->resolveCondition();
   }
 
   /**
-   * Static factory method to directly generate the SQL ORDER clause.
+   * Static factory to build SQL clause fragments from an `OrderByDefinition`.
    *
-   * @param string|array<string, string|null> $order The input order condition.
-   * @return array SQL fragment like: "DESC NULLS LAST"
+   * @param OrderByDefinition $order The ORDER BY clause definition.
+   * @return array<int, string> One or more SQL clause fragments (e.g., ["DESC NULLS LAST"])
    */
-  public static function format(string|array $order): array
+  public static function format(OrderByDefinition $order): array
   {
     $instance = new self($order);
-    return $instance->sgbdMapper->buildClause(
-      $instance->direction,
-      $instance->nulls
-    );
+    return $instance->sgbdMapper->buildClause($order);
   }
 
   /**
-   * Returns the full SQL clause formatted for the current dialect.
+   * Returns the full SQL clause as a string for a single field.
    *
-   * @return string The ORDER clause for the current field (e.g. "ASC NULLS FIRST").
+   * @return string SQL expression like "ASC NULLS FIRST".
    */
   public function getSqlOrder(): string
   {
@@ -93,38 +105,15 @@ final class OrderByOrchestrator extends AbstractOrchestrator
   }
 
   /**
-   * Parses the input and normalizes direction and nulls options.
+   * Extracts normalized direction and nulls placement from the definition.
    *
-   * @throws \RuntimeException If the input type is unsupported.
+   * Uses helper methods from `OrderByDefinition` for uppercase normalization.
+   *
+   * @return void
    */
   private function resolveCondition(): void
   {
-    match (true) {
-      is_array($this->condition)  => $this->buildWhenArray($this->condition),
-      is_string($this->condition) => $this->buildWhenString($this->condition),
-      default                     => throw new \RuntimeException("Invalid ORDER BY condition type: " . gettype($this->condition))
-    };
-  }
-
-  /**
-   * Normalizes array-style input into direction and nulls.
-   *
-   * @param array<string, string|null> $condition
-   */
-  private function buildWhenArray(array $condition): void
-  {
-    $this->direction = strtoupper($condition['direction'] ?? 'ASC');
-    $this->nulls = strtoupper($condition['nulls']) ?? null;
-  }
-
-  /**
-   * Normalizes a string-style direction input.
-   *
-   * @param string $condition
-   */
-  private function buildWhenString(string $condition): void
-  {
-    $this->direction = strtoupper($condition);
-    $this->nulls = null;
+    $this->direction = $this->condition->getDirection();
+    $this->nulls = $this->condition->getNulls();
   }
 }

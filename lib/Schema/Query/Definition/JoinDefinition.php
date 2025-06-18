@@ -12,24 +12,46 @@ use InvalidArgumentException;
 /**
  * Class JoinDefinition
  *
- * Represents a SQL JOIN clause definition in a portable, dialect-aware format.
- * This object only stores the structure of the JOIN and performs validation
- * against the SQL dialect's capabilities. It does not generate SQL fragments.
+ * Represents a single SQL JOIN clause in a dialect-aware, validated format.
+ * This class captures all structural information about the JOIN, including
+ * its type, target table, alias, and condition (`ON ... = ...`), and ensures
+ * that it conforms to the capabilities of the configured SQL dialect.
+ *
+ * It does not generate SQL directly — that responsibility belongs to
+ * dialect-specific mappers or orchestrators.
+ *
+ * ---
+ * Example usage:
+ * ```php
+ * $join = new JoinDefinition(
+ *   JoinType::LEFT_JOIN,
+ *   'user',
+ *   'u',
+ *   'post.user_id',
+ *   '=',
+ *   'u.id'
+ * );
+ * $join->validate(); // Ensures dialect supports LEFT JOIN, format is correct, etc.
+ * ```
+ *
+ * @package AWSD\Schema\Query\definition
  */
 final class JoinDefinition
 {
   /**
-   * The SQL dialect used for validation purposes.
+   * The SQL dialect used for validating join type support.
+   *
+   * @var SqlDialect
    */
   private readonly SqlDialect $sqlDialect;
 
   /**
-   * @param string $type     The type of join (e.g., "INNER JOIN", "LEFT JOIN", "JOIN")
-   * @param string $table    The target table being joined
-   * @param string $alias    The alias to be used for the joined table
-   * @param string $onLeft   The left-hand side of the join condition (e.g., "post.user_id")
-   * @param string $operator The comparison operator used in the join condition (typically "=")
-   * @param string $onRight  The right-hand side of the join condition (e.g., "user.id")
+   * @param JoinType $joinType   The type of JOIN (e.g., INNER_JOIN, LEFT_JOIN).
+   * @param string   $table      The name of the table to join.
+   * @param string   $alias      The alias used in the SQL query for the joined table.
+   * @param string   $onLeft     The left-hand side of the join condition (e.g., "post.user_id").
+   * @param string   $operator   The operator used to compare join columns (typically "=").
+   * @param string   $onRight    The right-hand side of the join condition (e.g., "user.id").
    */
   public function __construct(
     public readonly JoinType $joinType,
@@ -40,12 +62,18 @@ final class JoinDefinition
     public readonly string $onRight,
   ) {
     $this->sqlDialect = OrmConfig::getInstance()->getDialect();
+    $this->validate();
   }
 
   /**
-   * Validates the join definition against the current SQL dialect.
+   * Validates that the join definition is compatible with the current SQL dialect.
    *
-   * @throws InvalidArgumentException If the join type, operator, or column references are invalid.
+   * Performs:
+   * - Check that the join type is supported by the dialect
+   * - Check that the operator is allowed in JOIN clauses
+   * - Check that both column references follow "table.column" format
+   *
+   * @throws InvalidArgumentException If any of the checks fail.
    */
   public function validate(): void
   {
@@ -55,10 +83,9 @@ final class JoinDefinition
   }
 
   /**
-   * Validates the join type according to the SQL dialect.
-   * Accepts values such as 'JOIN', 'LEFT JOIN', etc., and ensures compatibility.
+   * Validates that the join type is supported by the current SQL dialect.
    *
-   * @throws InvalidArgumentException
+   * @throws InvalidArgumentException If the join type is not allowed.
    */
   private function validateType(): void
   {
@@ -77,10 +104,11 @@ final class JoinDefinition
   }
 
   /**
-   * Validates the operator used in the JOIN condition.
-   * Only supports basic equality operators.
+   * Validates that the operator used in the join is one of the supported forms.
    *
-   * @throws InvalidArgumentException
+   * Allowed operators: '=', '!=', '<>'
+   *
+   * @throws InvalidArgumentException If an unsupported operator is used.
    */
   private function validateOperator(): void
   {
@@ -92,15 +120,19 @@ final class JoinDefinition
   }
 
   /**
-   * Validates that both sides of the JOIN condition follow the format "table.column".
+   * Validates that both sides of the join condition use the format "table.column".
    *
-   * @throws InvalidArgumentException
+   * This ensures clarity and compatibility across dialects that require explicit references.
+   *
+   * @throws InvalidArgumentException If either reference does not match the expected format.
    */
   private function validateColumnReferences(): void
   {
     foreach ([$this->onLeft, $this->onRight] as $columnRef) {
       if (!preg_match('/^[a-zA-Z_][a-zA-Z0-9_]*\.[a-zA-Z_][a-zA-Z0-9_]*$/', $columnRef)) {
-        throw new InvalidArgumentException("Invalid column reference format: '{$columnRef}'. Expected format: table.column");
+        throw new InvalidArgumentException(
+          "Invalid column reference format: '{$columnRef}'. Expected format: table.column"
+        );
       }
     }
   }

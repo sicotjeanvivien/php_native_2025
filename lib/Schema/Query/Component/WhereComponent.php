@@ -49,9 +49,7 @@ final class WhereComponent extends AbstractQueryComponent
    */
   public function add(array $condition): void
   {
-    $whereDefinition = $this->createWhereDefinition($condition);
-    $whereDefinition->validate();
-    $this->wheres[] = $whereDefinition;
+    $this->wheres[] = $this->createWhereDefinition($condition);
   }
 
   /**
