@@ -154,7 +154,8 @@ final class SelectQuery extends AbstractQuery implements QueryInterface
    */
   public function setGroupBy(array $groupBy): self
   {
-    $this->componentsSql["GROUP_BY"] = '';
+    $groupBy = new GroupByComponent($groupBy);
+    $this->componentsSql["GROUP_BY"] = $groupBy->getQuery();
     return $this;
   }
 

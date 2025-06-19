@@ -100,6 +100,44 @@ final class SelectQueryPgsqlTest extends TestCase
     $this->assertSame($expected, $query->generateSql());
   }
 
+  public function test_select_with_group_by(): void
+  {
+    $query = new SelectQuery(User::class);
+    $query->setFields(['status', 'COUNT(*) AS total'])
+      ->setGroupBy(["status"])
+      ->setOrderBy(["total" => "DESC"]);
+    $expected = "SELECT status, COUNT(*) AS total FROM users GROUP BY status ORDER BY total DESC;";
+    $this->assertSame($expected, $query->generateSql());
+  }
+
+  public function test_multi_fields_group_by(): void
+  {
+    $query = new SelectQuery(User::class);
+    $query->setFields(['status', 'COUNT(*) AS total'])
+      ->setGroupBy(["status", "name"])
+      ->setOrderBy(["total" => "DESC"]);
+    $expected = "SELECT status, COUNT(*) AS total FROM users GROUP BY status, name ORDER BY total DESC;";
+    $this->assertSame($expected, $query->generateSql());
+  }
+
+  public function test_empty_field_throws_exception(): void
+  {
+    $query = new SelectQuery(User::class);
+    $query->setFields(['status'])
+      ->setGroupBy([""]);
+    $expected = "SELECT status, COUNT(*) AS total FROM users GROUP BY ";
+  }
+
+  public function test_potential_injection_not_sanitized(): void
+  {
+    $query = new SelectQuery(User::class);
+    $query->setFields(['status', 'COUNT(*) AS total'])
+      ->setGroupBy(['user_id; DROP TABLE users;'])
+      ->setOrderBy(["total" => "DESC"]);
+    $expected = "SELECT status, COUNT(*) AS total FROM users GROUP BY user_id; DROP TABLE users; ORDER BY total DESC;";
+    $this->assertSame($expected, $query->generateSql());
+  }
+
   public function test_select_full_combo(): void
   {
     $query = new SelectQuery(User::class);

@@ -102,6 +102,16 @@ final class SelectQuerySqliteTest extends TestCase
     $this->assertSame($expected, $query->generateSql());
   }
 
+  public function test_select_with_group_by(): void
+  {
+    $query = new SelectQuery(User::class);
+
+    $query->setFields(['status', 'COUNT(*) AS total'])
+      ->setGroupBy(["status"])
+      ->setOrderBy(["total" => "DESC"]);
+    $expected = "SELECT status, COUNT(*) AS total FROM users GROUP BY status ORDER BY total DESC;";
+    $this->assertSame($expected, $query->generateSql());
+  }
 
   public function test_select_full_combo(): void
   {
