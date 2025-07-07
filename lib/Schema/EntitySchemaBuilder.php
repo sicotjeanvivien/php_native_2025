@@ -68,9 +68,9 @@ class EntitySchemaBuilder
   public function create(): string
   {
     $queries = [
-      (new CreateQuery($this->entity))->generateSql(),
-      (new IndexQuery($this->entity))->generateSql(),
-      (new TriggerQuery($this->entity))->generateSql(),
+      (new CreateQuery($this->entity::class))->generateSql(),
+      (new IndexQuery($this->entity::class))->generateSql(),
+      (new TriggerQuery($this->entity::class))->generateSql(),
     ];
     return implode("\n\n", $queries);
   }
@@ -87,7 +87,7 @@ class EntitySchemaBuilder
    */
   public function findAll(array $fields = [], array $where = []): array
   {
-    $selectQuery = new SelectQuery($this->entity);
+    $selectQuery = new SelectQuery($this->entity::class);
     $sql = $selectQuery->setFields($fields)->setWhere($where)->generateSql();
     $params = $selectQuery->getParams();
     return $this->queryExecutor->fetchAllEntities($sql, $params);
@@ -102,7 +102,7 @@ class EntitySchemaBuilder
    */
   public function findOneBy(array $fields = [], array $where = []):?object
   {
-    $selectQuery = new SelectQuery($this->entity);
+    $selectQuery = new SelectQuery($this->entity::class);
     $sql = $selectQuery->setFields($fields)->setWhere($where)->setLimit(1)->generateSql();
     $params = $selectQuery->getParams();
     return $this->queryExecutor->executeQuery($sql, $params);

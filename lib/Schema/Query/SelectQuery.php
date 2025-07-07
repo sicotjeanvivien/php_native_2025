@@ -9,6 +9,8 @@ use AWSD\Schema\Query\Component\LimitComponent;
 use AWSD\Schema\Query\Component\OffsetComponent;
 use AWSD\Schema\Query\Component\OrderByComponent;
 use AWSD\Schema\Query\Component\WhereComponent;
+use AWSD\Schema\Query\Register\ExpressionsRegister;
+use AWSD\Schema\Query\Register\FieldsRegister;
 
 /**
  * Class SelectQuery
@@ -45,10 +47,16 @@ final class SelectQuery extends AbstractQuery implements QueryInterface
   private array $params;
 
   /**
-   * @var array<int, string> List of fields to be selected.
+   * @var FieldsRegister List of fields to be selected.
    * If empty, defaults to '*'.
    */
-  private array $fields;
+  private FieldsRegister $fieldsRegister;
+
+  /**
+   * @var ExpressionsRegister List of fields to be selected.
+   * If empty, defaults to '*'.
+   */
+  private ExpressionsRegister $expressionsRegister;
 
   /**
    * @var array<string, string> SQL fragments for each query component (JOIN, WHERE, etc.).
@@ -63,12 +71,13 @@ final class SelectQuery extends AbstractQuery implements QueryInterface
    * Initializes the SelectQuery for a given entity.
    * No attributes are required for SELECT queries.
    *
-   * @param object $entity The entity instance to select from.
+   * @param class-string $entity The entity instance to select from.
    */
   public function __construct(string $entity)
   {
     parent::__construct($entity, []);
-    $this->fields =  [];
+    $this->fieldsRegister = new FieldsRegister($this->tableName);
+    $this->expressionsRegister =  new ExpressionsRegister($this->tableName);
     $this->params = [];
     $this->componentsSql = [
       "JOIN" => "",
@@ -110,7 +119,24 @@ final class SelectQuery extends AbstractQuery implements QueryInterface
    */
   public function setFields(array $fields): self
   {
-    $this->fields = $fields;
+    foreach ($fields as $key => $field) {
+      $this->fieldsRegister->register($field);
+    }
+    return $this;
+  }
+
+  /**
+   * Defines the list of fields to select.
+   * If omitted, defaults to `*`.
+   *
+   * @param array $expressions The list of column names to select.
+   * @return $this
+   */
+  public function setExpression(array $expressions): self
+  {
+    foreach ($expressions as $key => $expression) {
+      $this->expressionsRegister->register($expression);
+    }
     return $this;
   }
 
@@ -246,7 +272,14 @@ final class SelectQuery extends AbstractQuery implements QueryInterface
    */
   private function getFields(): string
   {
-    $fieldList = empty($this->fields) ? '*' : implode(', ', $this->fields);
+    $fieldList = [];
+    foreach ($this->fieldsRegister->getAll() as $key => $fieldDefinition) {
+      $fieldList[] = "{$fieldDefinition->table}.{$fieldDefinition->column} AS {$fieldDefinition->alias}";
+    
+    foreach ($this->expressionsRegister->getAll() as $key => $expressionDefinition) {
+      $fieldList[] = "{$expressionDefinition->expression} AS {$expressionDefinition->alias}";
+    }}
+    $fieldList = empty($fieldList) ? '*' : implode(', ', $fieldList);
     return $this->isDistinct ? "DISTINCT $fieldList" : $fieldList;
   }
 

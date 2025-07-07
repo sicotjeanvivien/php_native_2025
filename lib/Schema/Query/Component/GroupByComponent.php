@@ -17,7 +17,6 @@ final class GroupByComponent extends AbstractQueryComponent
 
   public function getQuery(): string
   {
-    
     return 'GROUP BY ' . implode(', ', $this->groupBy->fields);
   }
 }

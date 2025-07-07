@@ -103,20 +103,22 @@ final class SelectQueryPgsqlTest extends TestCase
   public function test_select_with_group_by(): void
   {
     $query = new SelectQuery(User::class);
-    $query->setFields(['status', 'COUNT(*) AS total'])
+    $query->setFields(['status'])
+      ->setExpression([['COUNT(*)' => 'total']])
       ->setGroupBy(["status"])
       ->setOrderBy(["total" => "DESC"]);
-    $expected = "SELECT status, COUNT(*) AS total FROM users GROUP BY status ORDER BY total DESC;";
+    $expected = "SELECT users.status AS users_status, COUNT(*) AS total FROM users GROUP BY status ORDER BY total DESC;";
     $this->assertSame($expected, $query->generateSql());
   }
 
   public function test_multi_fields_group_by(): void
   {
     $query = new SelectQuery(User::class);
-    $query->setFields(['status', 'COUNT(*) AS total'])
+    $query->setFields(['status'])
+      ->setExpression([['COUNT(*)' => 'total']])
       ->setGroupBy(["status", "name"])
       ->setOrderBy(["total" => "DESC"]);
-    $expected = "SELECT status, COUNT(*) AS total FROM users GROUP BY status, name ORDER BY total DESC;";
+    $expected = "SELECT users.status AS users_status, COUNT(*) AS total FROM users GROUP BY status, name ORDER BY total DESC;";
     $this->assertSame($expected, $query->generateSql());
   }
 
@@ -125,16 +127,17 @@ final class SelectQueryPgsqlTest extends TestCase
     $query = new SelectQuery(User::class);
     $query->setFields(['status'])
       ->setGroupBy([""]);
-    $expected = "SELECT status, COUNT(*) AS total FROM users GROUP BY ";
+    $expected = "SELECT users.status AS users_status, COUNT(*) AS total FROM users GROUP BY ";
   }
 
   public function test_potential_injection_not_sanitized(): void
   {
     $query = new SelectQuery(User::class);
-    $query->setFields(['status', 'COUNT(*) AS total'])
+    $query->setFields(['status'])
+      ->setExpression([['COUNT(*)' => 'total']])
       ->setGroupBy(['user_id; DROP TABLE users;'])
       ->setOrderBy(["total" => "DESC"]);
-    $expected = "SELECT status, COUNT(*) AS total FROM users GROUP BY user_id; DROP TABLE users; ORDER BY total DESC;";
+    $expected = "SELECT users.status AS users_status, COUNT(*) AS total FROM users GROUP BY user_id; DROP TABLE users; ORDER BY total DESC;";
     $this->assertSame($expected, $query->generateSql());
   }
 
