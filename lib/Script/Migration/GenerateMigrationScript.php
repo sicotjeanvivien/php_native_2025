@@ -2,7 +2,7 @@
 
 namespace AWSD\Script\Migration;
 
-use AWSD\Schema\Migration\MigrationManager;
+use AWSD\Database\Manager\Migration\MigrationManager;
 use AWSD\Script\AbstractScript;
 
 class GenerateMigrationScript extends AbstractScript

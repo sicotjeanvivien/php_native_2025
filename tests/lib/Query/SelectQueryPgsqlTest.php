@@ -4,14 +4,14 @@ declare(strict_types=1);
 
 use App\Model\User\UserEntity as User;
 use PHPUnit\Framework\TestCase;
-use AWSD\Schema\Query\SelectQuery;
+use AWSD\Database\Schema\Query\SelectQuery;
 
 
 final class SelectQueryPgsqlTest extends TestCase
 {
   protected function setUp(): void
   {
-    \AWSD\Schema\Config\ORMConfig::reset();
+    \AWSD\Database\Schema\Config\ORMConfig::reset();
     $_ENV['DB_DRIVER'] = 'pgsql';
   }
 

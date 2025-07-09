@@ -2,9 +2,9 @@
 
 namespace App\Controller;
 
-use AWSD\Controller\AbsctractController;
+use AWSD\Controller\AbstractController;
 
-class UserController extends AbsctractController
+class UserController extends AbstractController
 {
 
   public function login(): void

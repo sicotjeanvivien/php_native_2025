@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 use App\Model\User\UserEntity as User;
 use PHPUnit\Framework\TestCase;
-use AWSD\Schema\Config\ORMConfig;
-use AWSD\Schema\Query\SelectQuery;
+use AWSD\Database\Schema\Config\ORMConfig;
+use AWSD\Database\Schema\Query\SelectQuery;
 
 final class SelectQuerySqliteTest extends TestCase
 {

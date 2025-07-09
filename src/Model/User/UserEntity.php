@@ -3,8 +3,8 @@
 namespace App\Model\User;
 
 use AWSD\Model\AbstractEntity;
-use AWSD\Schema\Attribute\Type;
-use AWSD\Schema\Enum\EntityType;
+use AWSD\Database\Schema\Attribute\Type;
+use AWSD\Database\Schema\Enum\EntityType;
 
 class UserEntity extends AbstractEntity
 {

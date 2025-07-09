@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace AWSD\Model;
 
-use AWSD\Schema\Attribute\Trigger;
+use AWSD\Database\Schema\Attribute\Trigger;
 use DateTime;
-use AWSD\Schema\Attribute\Type;
-use AWSD\Schema\Enum\EntityType;
+use AWSD\Database\Schema\Attribute\Type;
+use AWSD\Database\Schema\Enum\EntityType;
 
 /**
  * AbstractEntity

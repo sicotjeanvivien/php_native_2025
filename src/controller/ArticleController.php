@@ -2,9 +2,9 @@
 
 namespace App\Controller;
 
-use AWSD\Controller\AbsctractController;
+use AWSD\Controller\AbstractController;
 
-class ArticleController extends AbsctractController
+class ArticleController extends AbstractController
 {
   public function show($id): void
   {

@@ -3,7 +3,7 @@
 namespace AWSD\Model;
 
 use AWSD\Database\QueryExecutor;
-use AWSD\Schema\Helper\StringHelper;
+use AWSD\Database\Schema\Helper\StringHelper;
 
 /**
  * Class AbstractRepository

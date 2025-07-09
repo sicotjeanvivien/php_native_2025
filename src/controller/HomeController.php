@@ -2,10 +2,10 @@
 
 namespace App\Controller;
 
-use AWSD\Controller\AbsctractController;
+use AWSD\Controller\AbstractController;
 use AWSD\Database\Database;
 
-class HomeController extends AbsctractController
+class HomeController extends AbstractController
 {
 
   function index():void

@@ -4,9 +4,9 @@ namespace AWSD\Script;
 
 use App\Model\User\UserEntity;
 use AWSD\Database\QueryExecutor;
-use AWSD\Schema\Migration\Migration;
-use AWSD\Schema\EntitySchemaBuilder;
-use AWSD\Schema\Query\SelectQuery;
+use AWSD\Database\Schema\Migration\Migration;
+use AWSD\Database\Schema\EntitySchemaBuilder;
+use AWSD\Database\Schema\Query\SelectQuery;
 
 final class TestQueryScript extends AbstractScript
 {
