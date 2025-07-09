@@ -153,7 +153,7 @@ final class WhereComponent extends AbstractQueryComponent
    */
   private function getNullCondition(string $field): string
   {
-    return "$field IS NULL";
+    return $this->quote->quoteIdentifier($field) . ' IS NULL';
   }
 
   /**
@@ -164,7 +164,7 @@ final class WhereComponent extends AbstractQueryComponent
    */
   private function buildIsNotNullCondition(string $field): string
   {
-    return "$field IS NOT NULL";
+    return $this->quote->quoteIdentifier($field) . ' IS NOT NULL';
   }
 
   /**
@@ -178,7 +178,8 @@ final class WhereComponent extends AbstractQueryComponent
   {
     $placeholder = $this->generatePlaceholder($field);
     $this->registerParam($placeholder, $value);
-    return "$field = $placeholder";
+
+    return $this->quote->quoteIdentifier($field) . " = $placeholder";
   }
 
   /**
@@ -196,8 +197,9 @@ final class WhereComponent extends AbstractQueryComponent
       $this->registerParam($placeholder, $value);
       $placeholders[] = $placeholder;
     }
-    $inList = implode(', ', $placeholders);
-    return "$field IN ($inList)";
+
+    $quotedField = $this->quote->quoteIdentifier($field);
+    return "$quotedField IN (" . implode(', ', $placeholders) . ")";
   }
 
   /**
@@ -214,7 +216,7 @@ final class WhereComponent extends AbstractQueryComponent
     $p2 = ":{$field}_max";
     $this->registerParam($p1, $min);
     $this->registerParam($p2, $max);
-    return "$field BETWEEN $p1 AND $p2";
+     return $this->quote->quoteIdentifier($field) . " BETWEEN $p1 AND $p2";
   }
 
   /**
@@ -228,6 +230,6 @@ final class WhereComponent extends AbstractQueryComponent
   {
     $placeholder = $this->generatePlaceholder($field);
     $this->registerParam($placeholder, $value);
-    return "$field LIKE $placeholder";
+     return $this->quote->quoteIdentifier($field) . " LIKE $placeholder";
   }
 }

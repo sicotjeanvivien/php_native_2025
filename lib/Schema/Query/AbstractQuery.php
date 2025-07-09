@@ -3,6 +3,7 @@
 namespace AWSD\Schema\Query;
 
 use AWSD\Schema\Helper\StringHelper;
+use AWSD\Schema\Mapper\Orchestrator\QuoteOrchestrator;
 use ReflectionClass;
 use ReflectionProperty;
 
@@ -36,7 +37,18 @@ abstract class AbstractQuery
    */
   protected string $tableName;
 
+  /**
+   * Resolved attributes for the entity
+   * 
+   * @var array
+   */
   protected array $metadata;
+
+  /**
+   * 
+   */
+  protected QuoteOrchestrator $quote;
+
   /**
    * @param class-string $entity          The FQCN of the entity (e.g. Post::class)
    * @param array<string, mixed> $entityAttributes Optional entity metadata (table name, fields, etc.)
@@ -47,6 +59,7 @@ abstract class AbstractQuery
     $this->reflection = new ReflectionClass($this->entity);
     $this->tableName = $this->resolveTableName();
     $this->metadata =  $this->getMetadata($entityAttributes);
+    $this->quote = new QuoteOrchestrator();
   }
 
   /**

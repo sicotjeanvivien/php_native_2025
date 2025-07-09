@@ -101,10 +101,9 @@ final class OrderByComponent extends AbstractQueryComponent
     $clauses = [];
 
     foreach ($this->orders as $orderDef) {
-      foreach (
-        OrderByOrchestrator::format($orderDef) as $fragment
-      ) {
-        $clauses[] = "{$orderDef->field} $fragment";
+      foreach (OrderByOrchestrator::format($orderDef) as $fragment) {
+        $quoted = $this->quote->quoteIdentifier($orderDef->field);
+        $clauses[] = "$quoted $fragment";
       }
     }
 

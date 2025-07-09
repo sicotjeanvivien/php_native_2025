@@ -17,7 +17,7 @@ final class SelectQueryMysqlTest extends TestCase
   public function test_simple_select(): void
   {
     $query = new SelectQuery(User::class);
-    $this->assertSame('SELECT * FROM users ;', $query->generateSql());
+    $this->assertSame('SELECT * FROM `users` ;', $query->generateSql());
   }
 
   public function test_select_with_where_equals(): void
@@ -25,7 +25,7 @@ final class SelectQueryMysqlTest extends TestCase
     $query = new SelectQuery(User::class);
     $query->setWhere(['id' => 1]);
 
-    $expectedSQL = 'SELECT * FROM users WHERE id = :id_1;';
+    $expectedSQL = 'SELECT * FROM `users` WHERE `id` = :id_1;';
     $expectedParams = [':id_1' => 1];
     $this->assertSame($expectedSQL, $query->generateSql());
     $this->assertSame($expectedParams, $query->getParams());
@@ -36,7 +36,7 @@ final class SelectQueryMysqlTest extends TestCase
     $query = new SelectQuery(User::class);
     $query->setWhere(['status' => ['operator' => 'IN', 'value' => ['draft', 'published']]]);
 
-    $expected = 'SELECT * FROM users WHERE status IN (:status_1, :status_2);';
+    $expected = 'SELECT * FROM `users` WHERE `status` IN (:status_1, :status_2);';
     $this->assertSame($expected, $query->generateSql());
   }
 
@@ -45,7 +45,7 @@ final class SelectQueryMysqlTest extends TestCase
     $query = new SelectQuery(User::class);
     $query->setOrderBy(['created_at' => ['direction' => 'DESC', 'nulls' => 'LAST']]);
 
-    $expected = 'SELECT * FROM users ORDER BY created_at IS NULL ASC, created_at DESC;';
+    $expected = 'SELECT * FROM `users` ORDER BY `created_at` IS NULL ASC, `created_at` DESC;';
     $this->assertSame($expected, $query->generateSql());
   }
 
@@ -55,7 +55,7 @@ final class SelectQueryMysqlTest extends TestCase
     $query->setLimit(10);
     $query->setOffset(20);
 
-    $expectedSQL = 'SELECT * FROM users LIMIT :limit_1 OFFSET :offset_1;';
+    $expectedSQL = 'SELECT * FROM `users` LIMIT :limit_1 OFFSET :offset_1;';
     $expectedParams = [':limit_1' => 10, ':offset_1' => 20];
     $this->assertSame($expectedSQL, $query->generateSql());
     $this->assertSame($expectedParams, $query->getParams());
@@ -73,7 +73,7 @@ final class SelectQueryMysqlTest extends TestCase
       ]
     ]);
 
-    $expected = 'SELECT * FROM users INNER JOIN posts AS posts_1 ON posts_1.user_id = users.id;';
+    $expected = 'SELECT * FROM `users` INNER JOIN `posts` AS `posts_1` ON `posts_1`.`user_id` = `users`.`id`;';
 
     $this->assertSame($expected, $query->generateSql());
   }
@@ -95,7 +95,7 @@ final class SelectQueryMysqlTest extends TestCase
       ],
     ]);
 
-    $expected = 'SELECT * FROM users LEFT JOIN posts AS posts_1 ON posts_1.user_id = users.id INNER JOIN categories AS categories_1 ON posts.category_id = categories_1.id;';
+    $expected = 'SELECT * FROM `users` LEFT JOIN `posts` AS `posts_1` ON `posts_1`.`user_id` = `users`.`id` INNER JOIN `categories` AS `categories_1` ON `posts`.`category_id` = `categories_1`.`id`;';
 
     $this->assertSame($expected, $query->generateSql());
   }
@@ -108,7 +108,7 @@ final class SelectQueryMysqlTest extends TestCase
       ->setExpression([['COUNT(*)' => 'total']])
       ->setGroupBy(["status"])
       ->setOrderBy(["total" => "DESC"]);
-    $expected = "SELECT users.status AS users_status, COUNT(*) AS total FROM users GROUP BY status ORDER BY total DESC;";
+    $expected = "SELECT `users`.`status` AS `users_status`, COUNT(*) AS `total` FROM `users` GROUP BY `status` ORDER BY `total` DESC;";
     $this->assertSame($expected, $query->generateSql());
   }
 
@@ -119,7 +119,7 @@ final class SelectQueryMysqlTest extends TestCase
     $query->setOrderBy(['created_at' => ['direction' => 'DESC', 'nulls' => 'LAST']]);
     $query->setLimit(10);
 
-    $expectedSQL = 'SELECT * FROM users WHERE status = :status_1 ORDER BY created_at IS NULL ASC, created_at DESC LIMIT :limit_1;';
+    $expectedSQL = 'SELECT * FROM `users` WHERE `status` = :status_1 ORDER BY `created_at` IS NULL ASC, `created_at` DESC LIMIT :limit_1;';
     $expectedParams = [':status_1' => 'published', ':limit_1' => 10];
     $this->assertSame($expectedSQL, $query->generateSql());
     $this->assertSame($expectedParams, $query->getParams());

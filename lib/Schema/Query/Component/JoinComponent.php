@@ -145,7 +145,12 @@ final class JoinComponent extends AbstractQueryComponent
     $onLeft  = $this->replaceAlias($join->onLeft, $join->table, $join->alias);
     $onRight = $this->replaceAlias($join->onRight, $join->table, $join->alias);
 
-    return "{$join->joinType->value} {$join->table} AS {$join->alias} ON $onLeft {$join->operator} $onRight";
+    $quotedTable = $this->quote->quoteIdentifier($join->table);
+    $quotedAlias = $this->quote->quoteIdentifier($join->alias);
+    $quotedOnLeft = $this->quote->quoteIdentifier($onLeft);
+    $quotedOnRight = $this->quote->quoteIdentifier($onRight);
+
+    return "{$join->joinType->value} $quotedTable AS $quotedAlias ON $quotedOnLeft {$join->operator} $quotedOnRight";
   }
 
   /**

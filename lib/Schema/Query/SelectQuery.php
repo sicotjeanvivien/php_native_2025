@@ -259,8 +259,9 @@ final class SelectQuery extends AbstractQuery implements QueryInterface
    */
   private function getQuery(string $fields, string $componentsSql): string
   {
+    $table = $this->quote->quoteIdentifier($this->tableName);
     return <<<SQL
-    SELECT $fields FROM $this->tableName $componentsSql;
+    SELECT $fields FROM $table $componentsSql;
     SQL;
   }
 
@@ -274,11 +275,13 @@ final class SelectQuery extends AbstractQuery implements QueryInterface
   {
     $fieldList = [];
     foreach ($this->fieldsRegister->getAll() as $key => $fieldDefinition) {
-      $fieldList[] = "{$fieldDefinition->table}.{$fieldDefinition->column} AS {$fieldDefinition->alias}";
-    
-    foreach ($this->expressionsRegister->getAll() as $key => $expressionDefinition) {
-      $fieldList[] = "{$expressionDefinition->expression} AS {$expressionDefinition->alias}";
-    }}
+      $fieldList[] = $this->quote->quoteAlias("{$fieldDefinition->table}.{$fieldDefinition->column}", $fieldDefinition->alias);
+
+      foreach ($this->expressionsRegister->getAll() as $key => $expressionDefinition) {
+        $quotedAlias = $this->quote->quoteIdentifier($expressionDefinition->alias);
+        $fieldList[] = "{$expressionDefinition->expression} AS $quotedAlias";
+      }
+    }
     $fieldList = empty($fieldList) ? '*' : implode(', ', $fieldList);
     return $this->isDistinct ? "DISTINCT $fieldList" : $fieldList;
   }

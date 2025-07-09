@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace AWSD\Schema\Query\Component;
 
+use AWSD\Schema\Mapper\Orchestrator\QuoteOrchestrator;
+
 /**
  * Class AbstractQueryComponent
  *
@@ -18,6 +20,13 @@ abstract class AbstractQueryComponent implements QueryComponentInterface
    * @var array<string, mixed> Parameters to be bound in the final query.
    */
   protected array $params = [];
+
+  protected QuoteOrchestrator $quote;
+
+  public function __construct()
+  {
+    $this->quote = new QuoteOrchestrator();
+  }
 
   /**
    * Returns all registered parameters to be bound.
